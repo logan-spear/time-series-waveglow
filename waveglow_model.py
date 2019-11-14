@@ -32,14 +32,15 @@ class InvertibleConv(torch.nn.Module):
             return z, log_det_w
         
 class AffineCoupling(torch.nn.Module):
-    def __init__(self, n_in_channels, n_context_channels, n_layers, n_channels, kernel_size):
+    def __init__(self, n_in_channels, n_context_channels, n_layers, dilation_list, n_channels, kernel_size):
         super(AffineCoupling, self).__init__()
         self.n_in_channels = n_in_channels
         self.n_context_channels = n_context_channels
         self.n_layers = n_layers
+        self.dilation_list = dilation_list
         self.n_channels = n_channels
         self.kernel_size = kernel_size
-        self.WN = WN(n_in_channels, n_context_channels, n_layers, n_channels, kernel_size)
+        self.WN = WN(n_in_channels, n_context_channels, n_layers, n_channels, kernel_size, dilation_list)
     
     def forward(self, context, forecast, reverse=False):
         """
@@ -67,16 +68,17 @@ class AffineCoupling(torch.nn.Module):
             output  = self.WN(forecast_0, context)
             log_s = output[:, n_half:, :]
             b = output[:, :n_half, :]
-            forecast_1 torch.exp(log_s)*audio_1 + b
+            forecast_1 = torch.exp(log_s)*audio_1 + b
 
             forecast = torch.cat([forecast_0, forecast_1], 1)
 
             return forecast, log_s        
         
 class WaveGlow(torch.nn.Module):
-    def __init__(self, n_context_channels, n_flows, n_group, n_early_every, n_early_size, n_layers, n_channels, kernel_size):
+    def __init__(self, n_context_channels, n_flows, n_group, n_early_every, n_early_size, n_layers, dilation_list, n_channels, kernel_size):
         super(WaveGlow, self).__init__()
 
+        assert(n_layers == len(dilation_list))
         self.n_flows = n_flows
         self.n_group = n_group
         self.n_early_every = n_early_every
@@ -92,7 +94,7 @@ class WaveGlow(torch.nn.Module):
                 n_half = n_half - int(self.n_early_size/2)
                 n_remaining_channels = n_remaining_channels - self.n_early_size
             self.IC.append(InvertibleConv(n_remaining_channels))
-            self.AC.append(AffineCoupling(n_in_channels, n_context_channels, n_layers, n_channels, kernel_size))
+            self.AC.append(AffineCoupling(n_channels, n_context_channels, n_layers, dilation_list, n_channels, kernel_size))
 
         self.n_remaining_channels = n_remaining_channels
         
@@ -140,7 +142,7 @@ class WaveGlow(torch.nn.Module):
                 forecast = torch.cat((sigma*z, forecast), 1)
         
         # check dimensions and shit
-        forecast = forecast.permute(0, 2, 1).contiguous().view(forecast.size(0), -1).date
+        forecast = forecast.permute(0, 2, 1).contiguous().view(forecast.size(0), -1).data
         return forecast
     
 # Copied directly from waveglow github
@@ -170,7 +172,7 @@ class WN(torch.nn.Module):
         super(WN, self).__init__()
         assert(kernel_size % 2 == 1)
         assert(n_channels % 2 == 0)
-        assert(len(dilation_list) == n_channels)
+        assert(len(dilation_list) == n_layers)
         # number of layers in the neural network
         self.n_layers = n_layers
         # Number of channels in the data (not sure why doesn't match n_in_channels)
