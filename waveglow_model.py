@@ -5,6 +5,7 @@ import torch.nn.functional as F
 class InvertibleConv(torch.nn.Module):
     def __init__(self, channels):
         super(InvertibleConv, self).__init__()
+        print("Channels: ", channels)
         self.conv = torch.nn.Conv1d(channels, channels, kernel_size=1, stride=1, padding=0, bias=False)
         
         W = torch.qr(torch.FloatTensor(channels, channels).normal_())[0]
@@ -16,6 +17,14 @@ class InvertibleConv(torch.nn.Module):
         
     def forward(self, z, reverse=False):
         batch_size, group_size, n_of_groups = z.size()
+        # Here, group size refers to the channel dimension of the data, and each matrix of channel dimension (i.e. [:, i, :]) is
+        # going to be multiplied by the W matrix. The n_of_groups is number of groups, and that's *how many* matrices there are
+        # in the channel dimension, and each one will be multiplied by W
+        # The larger the group_size value is, the more thorough the "mixing" of the variables is before going back to the AC layer
+        # In the extreme case of group_size=1, the variables are never permuted before going back to AC, and the flow would work
+        # terribly because nothing would change order, so the same values would go into the WN each step of flow. In the other
+        # extreme, where n_of_groups=1, mixing is maximized, but we run the risk of our W matrix being too big and possibly getting
+        # numerical instability when we try to invert it, since we're not using very high precision to represent it (float32).
         
         W = self.conv.weight.squeeze()
         
@@ -42,7 +51,7 @@ class AffineCoupling(torch.nn.Module):
         self.kernel_size = kernel_size
         self.WN = WN(n_in_channels, n_context_channels, n_layers, n_channels, kernel_size, dilation_list)
     
-    def forward(self, context, forecast, reverse=False):
+    def forward(self, forecast, context, reverse=False):
         """
         context: batch x ? x ?
         forecast: batch x time
@@ -68,7 +77,7 @@ class AffineCoupling(torch.nn.Module):
             output  = self.WN(forecast_0, context)
             log_s = output[:, n_half:, :]
             b = output[:, :n_half, :]
-            forecast_1 = torch.exp(log_s)*audio_1 + b
+            forecast_1 = torch.exp(log_s)*audio_1 + b  # Might want to use sigmoid or clip the input to the exp for stability
 
             forecast = torch.cat([forecast_0, forecast_1], 1)
 
@@ -94,18 +103,21 @@ class WaveGlow(torch.nn.Module):
                 n_half = n_half - int(self.n_early_size/2)
                 n_remaining_channels = n_remaining_channels - self.n_early_size
             self.IC.append(InvertibleConv(n_remaining_channels))
-            self.AC.append(AffineCoupling(n_channels, n_context_channels, n_layers, dilation_list, n_channels, kernel_size))
+            # In original code, things used to instantiate the WN here (since they don't use AC class):
+            # WN(n_half, n_mel_channels*n_group, **WN_config)
+            self.AC.append(AffineCoupling(n_half, n_context_channels, n_layers, dilation_list, n_channels, kernel_size))
 
-        self.n_remaining_channels = n_remaining_channels
+        self.n_remaining_channels = n_remaining_channels # Apparently will be useful at inference, according to authors
         
         
 
             
-    def forward(self, context, forecast):
+    def forward(self, forecast, context):
         
-#         context = context.unfold(2, self.n_group, self.n_group).permute(0, 2, 1, 3)
-#         context = context.contiguous().view(spect.size(0), spect.size(1), -1).permute(0, 2, 1)
+        # context = context.unfold(2, self.n_group, self.n_group).permute(0, 2, 1, 3)
+        # context = context.contiguous().view(spect.size(0), spect.size(1), -1).permute(0, 2, 1)
         
+        # Not sure why we do this, applying it blindly from original code
         forecast = forcast.unfold(1, self.n_group, self.n_group).permute(0, 2, 1)
         
         output_forecast = []
@@ -120,7 +132,7 @@ class WaveGlow(torch.nn.Module):
             forecast, log_det_W = self.IC[k](forecast)
             log_det_W_list.append(log_det_W)
             
-            forecast, log_s = self.AC[k](context, forecast)
+            forecast, log_s = self.AC[k](forecast, context)
             log_s_list.append(log_s)
             
         output_forecast.append(forecast)
