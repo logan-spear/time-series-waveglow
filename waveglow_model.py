@@ -150,21 +150,53 @@ class WaveGlow(torch.nn.Module):
             # print("Shape of forecast in forward: ", forecast.shape)
             
         output_forecast.append(forecast)
-        return torch.cat(output_forecast, 1), log_s_list, log_det_W_list
+        # This keeps track of what shapes were assigned early, so that if we want to re-use these generated
+        # latent samples in generate, we can properly assign the shapes
+        early_assignment_shapes = [] 
+        for early_output in output_forecast:
+            early_assignment_shapes.append(early_output.shape)
+        return torch.cat(output_forecast, 1), log_s_list, log_det_W_list, early_assignment_shapes
     
-    def generate(self, context, sigma=1.0):
-        
-        # the sizes of spect are post the reshaping, not included yet make sure to check later
-        forecast = torch.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
-        forecast = torch.autograd.Variable(sigma*forecast)
-        
+    def generate(self, context, sigma=1.0, latent_z=None, early_assignment_shapes=None):
+        if latent_z is not None:
+            assert early_assignment_shapes is not None, "If using latent_z, must also give early_assignment_shapes"
+        if early_assignment_shapes is not None:
+            assert latent_z is not None, "If giving early_assignment_shapes, specify latent_z as well"
+
+        # if we don't give specifc points in the latent space to transform, sample random ones. Otherwise, use the specified points
+        if latent_z is None:
+            forecast = torch.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
+            # forecast = torch.autograd.Variable(sigma*forecast) # why does this have autograd in original paper? Never trains in this dir
+            forecast = sigma*forecast # why does this have autograd in original paper? Never trains in this dir
+        else:
+            latent_z_parts = []
+            for i in range(len(early_assignment_shapes)):
+                if i==0:
+                    latent_z_parts.append(latent_z[:, :early_assignment_shapes[i][1], :])
+                else:
+                    start = early_assignment_shapes[i-1][1]
+                    finish = start + early_assignment_shapes[i][1]
+                    latent_z_parts.append(latent_z[:, start:finish, :])
+
+
+            latent_z_parts = latent_z_parts[::-1]
+            forecast = latent_z_parts[0]
+
+    
+        # To keep track of how many early_every pieces we've appended, when we're using a given latent_z
+        num_early_every_inserted = 1 
         for k in reversed(range(self.n_flows)):
             forecast = self.AC[k](forecast, context, reverse=True)
             forecast = self.IC[k](forecast, reverse=True)
             
             if k % self.n_early_every == 0 and k > 0:
-                z = torch.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()
-                forecast = torch.cat((sigma*z, forecast), 1)
+                if latent_z is None:
+                    z = torch.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()
+                    forecast = torch.cat((sigma*z, forecast), 1)
+                else:
+                    z = latent_z_parts[num_early_every_inserted]
+                    forecast = torch.cat((z, forecast), 1)
+                    num_early_every_inserted += 1
         
         # check dimensions and shit
         forecast = forecast.permute(0, 2, 1).contiguous().view(forecast.size(0), -1).data
