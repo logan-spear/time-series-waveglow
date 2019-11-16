@@ -1,0 +1,5 @@
+
+Smart home
+==========
+
+Coming soon!
