@@ -36,7 +36,7 @@ class InvertibleConv(torch.nn.Module):
             z = F.conv1d(z, self.W_inv, bias=None, stride=1, padding=0)
             return z
         else:
-            log_det_W = batch_size * n_of_groups * torch.logdet(W)
+            log_det_w = batch_size * n_of_groups * torch.logdet(W)
             z = self.conv(z)
             return z, log_det_w
         
@@ -77,7 +77,7 @@ class AffineCoupling(torch.nn.Module):
             output  = self.WN(forecast_0, context)
             log_s = output[:, n_half:, :]
             b = output[:, :n_half, :]
-            forecast_1 = torch.exp(log_s)*audio_1 + b  # Might want to use sigmoid or clip the input to the exp for stability
+            forecast_1 = torch.exp(log_s)*forecast_1 + b  # Might want to use sigmoid or clip the input to the exp for stability
 
             forecast = torch.cat([forecast_0, forecast_1], 1)
 
@@ -88,16 +88,18 @@ class WaveGlow(torch.nn.Module):
         super(WaveGlow, self).__init__()
 
         assert(n_layers == len(dilation_list))
-        self.n_flows = n_flows
-        self.n_group = n_group
+        self.n_flows = n_flows                  # Number of steps of flow
+        self.n_group = n_group                  # 
         self.n_early_every = n_early_every
         self.n_early_size = n_early_size
+        self.n_channels = n_channels
         self.IC = torch.nn.ModuleList()
         self.AC = torch.nn.ModuleList()
         
         n_half = int(n_group/2)
         
         n_remaining_channels = n_group
+
         for k in range(n_flows):
             if k % self.n_early_every == 0 and k > 0:
                 n_half = n_half - int(self.n_early_size/2)
@@ -109,16 +111,26 @@ class WaveGlow(torch.nn.Module):
 
         self.n_remaining_channels = n_remaining_channels # Apparently will be useful at inference, according to authors
         
-        
-
             
     def forward(self, forecast, context):
+        '''
+        Transform a forecast with a given context into the latent space (so a spherical gaussian sample)
         
+        forecast: torch FloatTensor of shape [b, N], where b is batch dimension and N is length of forecast (usually 96)
+        context: torch FloatTensor of shape [b, M], where b is batch dimension and M is num features (currently probably just =N,
+            use past 24 hours of data to predict next 24 hours of data)
+
+        '''
+         
         # context = context.unfold(2, self.n_group, self.n_group).permute(0, 2, 1, 3)
         # context = context.contiguous().view(spect.size(0), spect.size(1), -1).permute(0, 2, 1)
         
         # Not sure why we do this, applying it blindly from original code
-        forecast = forcast.unfold(1, self.n_group, self.n_group).permute(0, 2, 1)
+        # unfold(dimension, size, step): returns tensor which contains all slices of size "size" from the tensor
+        # in the dimension "dimension". Step between two slices is given by step.
+        # Ex: [1,2,3,4].unfold(0, 2, 1) = [1,2], [2,3], [3,4]
+        # In effect, THI is the reshape operation which moves things from the spatial dimension into the channel dimension
+        forecast = forecast.unfold(1, self.n_group, self.n_group).permute(0, 2, 1)
         
         output_forecast = []
         log_s_list = []
@@ -126,7 +138,7 @@ class WaveGlow(torch.nn.Module):
         
         for k in range(self.n_flows):
             if k % self.n_early_every == 0 and k > 0:
-                output_forecast.append(forecast[:, :self.n_earl_size, :])
+                output_forecast.append(forecast[:, :self.n_early_size, :])
                 forecast = forecast[:, self.n_early_size:, :]
                 
             forecast, log_det_W = self.IC[k](forecast)
@@ -134,6 +146,8 @@ class WaveGlow(torch.nn.Module):
             
             forecast, log_s = self.AC[k](forecast, context)
             log_s_list.append(log_s)
+
+            # print("Shape of forecast in forward: ", forecast.shape)
             
         output_forecast.append(forecast)
         return torch.cat(output_forecast, 1), log_s_list, log_det_W_list
@@ -141,16 +155,15 @@ class WaveGlow(torch.nn.Module):
     def generate(self, context, sigma=1.0):
         
         # the sizes of spect are post the reshaping, not included yet make sure to check later
-        forecast = torch.cuda.FloatTensor(context.size(0), self.n_remaining_channels, context.size(2)).normal_()
-        
+        forecast = torch.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
         forecast = torch.autograd.Variable(sigma*forecast)
         
         for k in reversed(range(self.n_flows)):
-            forecast = self.AC[k](context, forecast, reverse=True)
-            forecast = self.IC[k](context, forecast, reverse=True)
+            forecast = self.AC[k](forecast, context, reverse=True)
+            forecast = self.IC[k](forecast, reverse=True)
             
             if k % self.n_early_every == 0 and k > 0:
-                z = torch.cuda.FloatTensor(spect.size(0), self.n_early_size, spect.size(2)).normal_()
+                z = torch.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()
                 forecast = torch.cat((sigma*z, forecast), 1)
         
         # check dimensions and shit
@@ -242,24 +255,23 @@ class WN(torch.nn.Module):
             res_skip_layer = torch.nn.utils.weight_norm(res_skip_layer, name='weight')
             self.res_skip_layers.append(res_skip_layer)
 
-    def forward(self, forward_input):
-        forecast, context = forward_input
-        audio = self.start(audio)
-        output = torch.zeros_like(audio)
+    def forward(self, forecast, context):
+        forecast = self.start(forecast)
+        output = torch.zeros_like(forecast)
         n_channels_tensor = torch.IntTensor([self.n_channels])
 
-        spect = self.cond_layer(spect)
+        context = self.cond_layer(context)
 
         for i in range(self.n_layers):
-            spect_offset = i*2*self.n_channels
+            context_offset = i*2*self.n_channels
             acts = fused_add_tanh_sigmoid_multiply(
-                self.in_layers[i](audio),
-                spect[:,spect_offset:spect_offset+2*self.n_channels,:],
+                self.in_layers[i](forecast),
+                context[:,context_offset:context_offset+2*self.n_channels,:],
                 n_channels_tensor)
 
             res_skip_acts = self.res_skip_layers[i](acts)
             if i < self.n_layers - 1:
-                audio = audio + res_skip_acts[:,:self.n_channels,:]
+                forecast = forecast + res_skip_acts[:,:self.n_channels,:]
                 output = output + res_skip_acts[:,self.n_channels:,:]
             else:
                 output = output + res_skip_acts
