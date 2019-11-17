@@ -104,7 +104,7 @@ class AffineCoupling(torch.nn.Module):
             return forecast, log_s        
         
 class WaveGlow(torch.nn.Module):
-    def __init__(self, n_context_channels, n_flows, n_group, n_early_every, n_early_size, n_layers, dilation_list, n_channels, kernel_size, cuda=True):
+    def __init__(self, n_context_channels, n_flows, n_group, n_early_every, n_early_size, n_layers, dilation_list, n_channels, kernel_size, use_cuda=True):
         super(WaveGlow, self).__init__()
 
         assert(n_layers == len(dilation_list))
@@ -115,7 +115,7 @@ class WaveGlow(torch.nn.Module):
         self.n_channels = n_channels
         self.IC = torch.nn.ModuleList()
         self.AC = torch.nn.ModuleList()
-        self.cuda = cuda
+        self.use_cuda = use_cuda
         
         n_half = int(n_group/2)
         
@@ -186,7 +186,7 @@ class WaveGlow(torch.nn.Module):
 
         # if we don't give specifc points in the latent space to transform, sample random ones. Otherwise, use the specified points
         if latent_z is None:
-            if self.cuda:
+            if self.use_cuda:
                 forecast = torch.cuda.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
             else:
                 forecast = torch.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
@@ -215,7 +215,7 @@ class WaveGlow(torch.nn.Module):
             
             if k % self.n_early_every == 0 and k > 0:
                 if latent_z is None:
-                    if self.cuda:
+                    if self.use_cuda:
                         z = torch.cuda.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()
                     else:
                         z = torch.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()

@@ -28,7 +28,7 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gp
 					    dilation_list=[1,2],
 					    n_channels=96,
 					    kernel_size=3,
-					    cuda=use_gpu)
+					    use_cuda=use_gpu)
 	if use_gpu:
 		model_for_saving = model_for_saving.cuda()
 	model_for_saving.load_state_dict(model.state_dict())
@@ -38,8 +38,10 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gp
 				'learning_rate': learning_rate}, filepath)
 
 
+# n_context_channels=96, n_flows=6, n_group=24, n_early_every=3, n_early_size=8, n_layers=2, dilation_list=[1,2], n_channels=96, kernel_size=3, use_gpu=True
+def training(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3, True]):
 
-def train(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, use_gpu="True"):
+	use_gpu = params[-1]
 	torch.manual_seed(seed)
 	if use_gpu:
 		torch.cuda.manual_seed(seed)
@@ -47,19 +49,9 @@ def train(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-
 	if not os.path.isdir(output_directory[2:]): os.mkdir(output_directory[2:])
 	if checkpointing and not os.path.isdir(checkpoint_path[2:]): os.mkdir(checkpoint_path[2:])
 	criterion = WaveGlowLoss()
-	model = WaveGlow(n_context_channels=96, 
-					    n_flows=6, 
-					    n_group=24, 
-					    n_early_every=3,
-					    n_early_size=8,
-					    n_layers=2,
-					    dilation_list=[1,2],
-					    n_channels=96,
-					    kernel_size=3,
-					    cuda=use_gpu)
-
+	model = WaveGlow(*params)
 	if use_gpu:
-		model = model.cuda()
+		model.cuda()
 
 	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
@@ -116,4 +108,4 @@ def train(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-
 
 
 if __name__ == "__main__":
-	train(use_gpu=True)
+	training()
