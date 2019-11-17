@@ -14,6 +14,8 @@ parser.add_argument('--use_gpu', dest='use_gpu', type=int, default=1)
 parser.add_argument('--checkpointing', dest='checkpointing', type=int, default=1)
 parser.add_argument('--generate_per_epoch', dest='generate_per_epoch', type=int, default=1)
 parser.add_argument('--generate_final', dest='generate_final', type=int, default=1)
+parser.add_argument('--batch_size', dest='batch_size', type=int, default=12)
+parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-4)
 args = parser.parse_args()
 
 args.rolling = True if args.rolling else False
@@ -108,12 +110,12 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 
 			
 		dataset.epoch_end = True
-		plt.figure()
-		plt.plot(range(len(loss_iteration)), np.log10(loss_iteration))
-		plt.xlabel('iteration')
-		plt.ylabel('log10 of loss')
-		plt.savefig('total_loss_graph.png')
-		plt.close()
+	plt.figure()
+	plt.plot(range(len(loss_iteration)), np.log10(loss_iteration))
+	plt.xlabel('iteration')
+	plt.ylabel('log10 of loss')
+	plt.savefig('total_loss_graph.png')
+	plt.close()
 	return model
 
 def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='final'):
@@ -143,7 +145,13 @@ def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='f
 if __name__ == "__main__":
 	
 	dataset = DataLoader(rolling=args.rolling, small_subset=args.small_subset)
-	final_model = training(epochs=args.epochs, dataset=dataset, use_gpu=args.use_gpu, checkpointing=args.checkpointing, gen_tests=args.generate_per_epoch)
+	final_model = training(epochs=args.epochs, 
+							dataset=dataset, 
+							use_gpu=args.use_gpu, 
+							checkpointing=args.checkpointing, 
+							gen_tests=args.generate_per_epoch, 
+							batch_size=args.batch_size, 
+							learning_rate=args.learning_rate)
 	if args.generate_final:
 		generate_tests(dataset, final_model, use_gpu=args.use_gpu)
 
