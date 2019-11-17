@@ -3,6 +3,7 @@ from DataLoader import DataLoader
 import numpy as np
 import os
 from waveglow_model import WaveGlow, WaveGlowLoss
+import matplotlib.pyplot as plt
 
 def load_checkpoint(checkpoint_path, model, optimizer):
 	assert os.path.isfile(checkpoint_path)
@@ -39,7 +40,7 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gp
 
 
 # n_context_channels=96, n_flows=6, n_group=24, n_early_every=3, n_early_size=8, n_layers=2, dilation_list=[1,2], n_channels=96, kernel_size=3, use_gpu=True
-def training(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3, True]):
+def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3, False]):
 
 	use_gpu = params[-1]
 	torch.manual_seed(seed)
@@ -61,8 +62,6 @@ def training(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=
 
 		# iteration += 1
 
-	dataset = DataLoader()
-
 
 	model.train()
 	for epoch in range(epochs):
@@ -74,7 +73,7 @@ def training(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=
 			context, forecast = dataset.sample(batch_size)
 
 			if use_gpu:
-				forecast = torch.autograd.Varible(torch.cuda.FloatTensor(forecast))
+				forecast = torch.autograd.Variable(torch.cuda.FloatTensor(forecast))
 				context = torch.autograd.Variable(torch.cuda.FloatTensor(context))
 			else:
 				forecast = torch.autograd.Variable(torch.FloatTensor(forecast))
@@ -101,11 +100,29 @@ def training(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=
 			
 
 		dataset.epoch_end = True
+	return model
 
+def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True):
+	context, forecast = dataset.test_samples(num_contexts=15)
 
+	if use_gpu:
+		context = torch.cuda.FloatTensor(context)
+	else:
+		context = torch.FloatTensor(context)
+	gen_forecast = model.generate(context)
 
+	for i in range(num_contexts):
+		plt.figure()
+		plt.plot(range(n), gen_forecast[i, :], label='generated')
+		plt.plot(range(n), forecast[i, :], label='original')
+		plt.legend()
+		plt.xlabel('time (t)')
+		plt.savefig('forecast_generated_%d.png' % i)
 
 
 
 if __name__ == "__main__":
-	training()
+	dataset = DataLoader(rolling=False)
+	final_model = training(epochs=1, dataset=dataset)
+	generate_tests(dataset, final_model, use_gpu=False)
+

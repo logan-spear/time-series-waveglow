@@ -6,11 +6,13 @@ class DataLoader:
 		self.trainset = pd.read_pickle(train_f).values
 		self.testset = pd.read_pickle(test_f).values
 		self.m = self.trainset.shape[0]
+		self.m_test = self.testset.shape[0]
 		self.n = n
-		if rolling:
+		self.rolling = rolling
+		if self.rolling:
 			self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
 		else:
-			self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1, self.n), self.m-2*self.n, replace=False))
+			self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1, self.n)), int((self.m-self.n)/self.n), replace=False)
 		self.num_samples = self.sample_indices.shape[0]
 		self.sample_idx = 0
 		self.epoch_end = True
@@ -21,10 +23,10 @@ class DataLoader:
 			self.epoch_end = False
 			indices = self.sample_indices[self.sample_idx:]
 			self.sample_idx = 0
-			if rolling:
+			if self.rolling:
 				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
 			else:
-				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1, self.n), self.m-2*self.n, replace=False))
+				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1, self.n)), int((self.m-self.n)/self.n), replace=False)
 		else:
 			indices = self.sample_indices[self.sample_idx:self.sample_idx+batch_size]
 			self.sample_idx += batch_size
@@ -35,4 +37,15 @@ class DataLoader:
 		forecast = np.vstack([np.reshape(self.trainset[i:i+self.n], [1, self.n]) for i in indices])
 
 		return context, forecast
+
+	def test_samples(self, num_contexts=15):
+		indices = np.random.choice(list(range(self.n, self.m_test-self.n+1, self.n)), num_contexts, replace=False)
+		context = np.vstack([np.reshape(self.testset[i-self.n:i], [1, self.n]) for i in indices])
+		forecast = np.vstack([np.reshape(self.testset[i:i+self.n], [1, self.n]) for i in indices])
+
+		context = np.reshape(context, [num_contexts, self.n])
+		context = context[:, :, None]
+		forecast = np.reshape(forecast, [num_contexts, self.n])
+
+		return context, forecast		
 
