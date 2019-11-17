@@ -4,6 +4,22 @@ import numpy as np
 import os
 from waveglow_model import WaveGlow, WaveGlowLoss
 import matplotlib.pyplot as plt
+import argparse
+
+parser = argparse.ArgumentParser(description='argument parser')
+parser.add_argument('--epochs', dest='epochs', type=int, default=100)
+parser.add_argument('--rolling', dest='rolling', type=int, default=1)
+parser.add_argument('--small_subset', dest='small_subset', type=int, default=0)
+parser.add_argument('--use_gpu', dest='use_gpu', type=int, default=1)
+parser.add_argument('--checkpointing', dest='checkpointing', type=int, default=1)
+parser.add_argument('--generate_per_epoch', dest='generate_per_epoch', type=int, default=1)
+parser.add_argument('--generate_final', dest='generate_final', type=int, default=1)
+args = parser.parse_args()
+
+args.rolling = True if args.rolling else False
+args.small_subset = True if args.small_subset else False
+args.use_gpu = True if args.use_gpu else False
+args.checkpointing = True if args.checkpointing else False
 
 def load_checkpoint(checkpoint_path, model, optimizer):
 	assert os.path.isfile(checkpoint_path)
@@ -30,8 +46,9 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gp
 
 
 # n_context_channels=96, n_flows=6, n_group=24, n_early_every=3, n_early_size=8, n_layers=2, dilation_list=[1,2], n_channels=96, kernel_size=3, use_gpu=True
-def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3], use_gpu=True):
-	
+def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3], use_gpu=True, gen_tests=True):
+	print("#############")
+	print(use_gpu)
 	params.append(use_gpu)
 	torch.manual_seed(seed)
 	if use_gpu:
@@ -72,7 +89,6 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 			
 			z, log_s_list, log_det_w_list, early_out_shapes = model(forecast, context)
 
-
 			loss = criterion((z, log_s_list, log_det_w_list))
 			reduced_loss = loss.item()
 			loss_iteration.append(reduced_loss)
@@ -83,20 +99,21 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 			iteration += 1
 			# if (checkpointing and (iteration % iters_per_checkpoint == 0)):
 
-		generate_tests(dataset, model, 5, self.n, use_gpu, str(epoch+1))
+		if gen_tests: generate_tests(dataset, model, 5, 96, use_gpu, str(epoch+1))
 		epoch_loss = sum(avg_loss)/len(avg_loss)
-		checkpoint_path = "%s/waveglow_epoch-%d_%.4f" % (output_directory, epoch, epoch_loss)
-
-		save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
+		if checkpointing:
+			checkpoint_path = "%s/waveglow_epoch-%d_%.4f" % (output_directory, epoch, epoch_loss)
+			save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
 
 
 			
 		dataset.epoch_end = True
 		plt.figure()
-		plt.plot(range(len(loss_iteration)), loss_iteration)
+		plt.plot(range(len(loss_iteration)), np.log10(loss_iteration))
 		plt.xlabel('iteration')
-		plt.ylabel('loss')
+		plt.ylabel('log10 of loss')
 		plt.savefig('total_loss_graph.png')
+		plt.close()
 	return model
 
 def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='final'):
@@ -106,7 +123,11 @@ def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='f
 		context = torch.cuda.FloatTensor(context)
 	else:
 		context = torch.FloatTensor(context)
-	gen_forecast = model.generate(context)
+
+	if use_gpu:
+		gen_forecast = model.generate(context).cpu()
+	else:
+		gen_forecast = model.generate(context)
 
 	for i in range(num_contexts):
 		plt.figure()
@@ -115,11 +136,14 @@ def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='f
 		plt.legend()
 		plt.xlabel('time (t)')
 		plt.savefig('forecast_generated_%d_epoch-%s.png' % (i, epoch))
+		plt.close()
 
 
 
 if __name__ == "__main__":
-	dataset = DataLoader(rolling=True)
-	final_model = training(epochs=2, dataset=dataset, use_gpu=True)
-	generate_tests(dataset, final_model, use_gpu=True)
+	
+	dataset = DataLoader(rolling=args.rolling, small_subset=args.small_subset)
+	final_model = training(epochs=args.epochs, dataset=dataset, use_gpu=args.use_gpu, checkpointing=args.checkpointing, gen_tests=args.generate_per_epoch)
+	if args.generate_final:
+		generate_tests(dataset, final_model, use_gpu=args.use_gpu)
 

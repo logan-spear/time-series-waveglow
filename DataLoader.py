@@ -2,15 +2,19 @@ import numpy as np
 import pandas as pd
 
 class DataLoader:
-	def __init__(self, train_f="wind_power_data/wind_power_train.pickle", test_f = "wind_power_data/wind_power_test.pickle", n=96, rolling=True):
+	def __init__(self, train_f="wind_power_data/wind_power_train.pickle", test_f = "wind_power_data/wind_power_test.pickle", n=96, rolling=True, small_subset=False):
 		self.trainset = pd.read_pickle(train_f).values
 		self.testset = pd.read_pickle(test_f).values
 		self.m = self.trainset.shape[0]
 		self.m_test = self.testset.shape[0]
 		self.n = n
 		self.rolling = rolling
+		self.small_subset = small_subset
 		if self.rolling:
-			self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
+			if small_subset:
+				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 250, replace=False)
+			else:
+				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
 		else:
 			self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1, self.n)), int((self.m-self.n)/self.n), replace=False)
 		self.num_samples = self.sample_indices.shape[0]
@@ -24,7 +28,10 @@ class DataLoader:
 			indices = self.sample_indices[self.sample_idx:]
 			self.sample_idx = 0
 			if self.rolling:
-				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
+				if self.small_subset:
+					self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 250, replace=False)
+				else:
+					self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
 			else:
 				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1, self.n)), int((self.m-self.n)/self.n), replace=False)
 		else:
