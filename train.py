@@ -20,18 +20,8 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gp
 	print("Saving model and optimizer state at iteration %d to %s" % (iteration, filepath))
 
 
-	model_for_saving = WaveGlow(n_context_channels=96, 
-					    n_flows=6, 
-					    n_group=24, 
-					    n_early_every=3,
-					    n_early_size=8,
-					    n_layers=2,
-					    dilation_list=[1,2],
-					    n_channels=96,
-					    kernel_size=3,
-					    use_cuda=use_gpu)
-	if use_gpu:
-		model_for_saving = model_for_saving.cuda()
+	model_for_saving = model
+
 	model_for_saving.load_state_dict(model.state_dict())
 	torch.save({'model': model_for_saving,
 				'iteration': iteration,
@@ -40,9 +30,9 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gp
 
 
 # n_context_channels=96, n_flows=6, n_group=24, n_early_every=3, n_early_size=8, n_layers=2, dilation_list=[1,2], n_channels=96, kernel_size=3, use_gpu=True
-def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3, False]):
-
-	use_gpu = params[-1]
+def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3], use_gpu=True):
+	
+	params.append(use_gpu)
 	torch.manual_seed(seed)
 	if use_gpu:
 		torch.cuda.manual_seed(seed)
@@ -123,6 +113,6 @@ def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True):
 
 if __name__ == "__main__":
 	dataset = DataLoader()
-	final_model = training(epochs=100, dataset=dataset)
-	generate_tests(dataset, final_model, use_gpu=False)
+	final_model = training(epochs=50, dataset=dataset)
+	generate_tests(dataset, final_model, use_gpu=True)
 
