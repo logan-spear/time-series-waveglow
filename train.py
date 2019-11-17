@@ -122,7 +122,7 @@ def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True):
 
 
 if __name__ == "__main__":
-	dataset = DataLoader(rolling=False)
-	final_model = training(epochs=1, dataset=dataset)
+	dataset = DataLoader()
+	final_model = training(epochs=100, dataset=dataset)
 	generate_tests(dataset, final_model, use_gpu=False)
 
