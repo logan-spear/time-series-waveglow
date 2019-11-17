@@ -54,6 +54,7 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 
 
 	model.train()
+	loss_iteration = []
 	for epoch in range(epochs):
 		iteration = 0
 		print("Epoch: %d/%d" % (epoch+1, epochs))
@@ -74,7 +75,7 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 
 			loss = criterion((z, log_s_list, log_det_w_list))
 			reduced_loss = loss.item()
-
+			loss_iteration.append(reduced_loss)
 			loss.backward()
 			avg_loss.append(reduced_loss)
 			optimizer.step()
@@ -82,17 +83,23 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 			iteration += 1
 			# if (checkpointing and (iteration % iters_per_checkpoint == 0)):
 
+		generate_tests(dataset, model, 5, self.n, use_gpu, str(epoch+1))
 		epoch_loss = sum(avg_loss)/len(avg_loss)
 		checkpoint_path = "%s/waveglow_epoch-%d_%.4f" % (output_directory, epoch, epoch_loss)
 
 		save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
 
-			
 
+			
 		dataset.epoch_end = True
+		plt.figure()
+		plt.plot(range(len(loss_iteration)), loss_iteration)
+		plt.xlabel('iteration')
+		plt.ylabel('loss')
+		plt.savefig('total_loss_graph.png')
 	return model
 
-def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True):
+def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='final'):
 	context, forecast = dataset.test_samples(num_contexts=15)
 
 	if use_gpu:
@@ -107,12 +114,12 @@ def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True):
 		plt.plot(range(n), forecast[i, :], label='original')
 		plt.legend()
 		plt.xlabel('time (t)')
-		plt.savefig('forecast_generated_%d.png' % i)
+		plt.savefig('forecast_generated_%d_epoch-%s.png' % (i, epoch))
 
 
 
 if __name__ == "__main__":
-	dataset = DataLoader()
-	final_model = training(epochs=50, dataset=dataset)
-	generate_tests(dataset, final_model, use_gpu=True)
+	dataset = DataLoader(rolling=True)
+	final_model = training(epochs=2, dataset=dataset, use_gpu=False)
+	generate_tests(dataset, final_model, use_gpu=False)
 
