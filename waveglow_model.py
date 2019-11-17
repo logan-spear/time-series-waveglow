@@ -2,6 +2,26 @@ import torch
 from torch.autograd import Variable
 import torch.nn.functional as F
 
+
+class WaveGlowLoss(torch.nn.Module):
+    def __init__(self, sigma=1.0):
+        super(WaveGlowLoss, self).__init__()
+        self.sigma = sigma
+
+    def forward(self, model_output):
+        z, log_s_list, log_det_W_list = model_output
+        for i, log_s in enumerate(log_s_list):
+            if i == 0:
+                log_s_total = torch.sum(log_s)
+                log_det_W_total = log_det_W_list[i]
+            else:
+                log_s_total = log_s_total + torch.sum(log_s)
+                log_det_W_total += log_det_W_list[i]
+
+        loss = torch.sum(z*z)/(2*self.sigma*self.sigma) - log_s_total - log_det_W_total
+        return loss/(z.size(0)*z.size(1)*z.size(2))
+
+
 class InvertibleConv(torch.nn.Module):
     def __init__(self, channels):
         super(InvertibleConv, self).__init__()
@@ -84,7 +104,7 @@ class AffineCoupling(torch.nn.Module):
             return forecast, log_s        
         
 class WaveGlow(torch.nn.Module):
-    def __init__(self, n_context_channels, n_flows, n_group, n_early_every, n_early_size, n_layers, dilation_list, n_channels, kernel_size):
+    def __init__(self, n_context_channels, n_flows, n_group, n_early_every, n_early_size, n_layers, dilation_list, n_channels, kernel_size, cuda=True):
         super(WaveGlow, self).__init__()
 
         assert(n_layers == len(dilation_list))
@@ -95,6 +115,7 @@ class WaveGlow(torch.nn.Module):
         self.n_channels = n_channels
         self.IC = torch.nn.ModuleList()
         self.AC = torch.nn.ModuleList()
+        self.cuda = cuda
         
         n_half = int(n_group/2)
         
@@ -165,7 +186,10 @@ class WaveGlow(torch.nn.Module):
 
         # if we don't give specifc points in the latent space to transform, sample random ones. Otherwise, use the specified points
         if latent_z is None:
-            forecast = torch.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
+            if self.cuda:
+                forecast = torch.cuda.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
+            else:
+                forecast = torch.FloatTensor(context.size(0), self.n_remaining_channels, int(self.n_channels / self.n_group)).normal_()
             # forecast = torch.autograd.Variable(sigma*forecast) # why does this have autograd in original paper? Never trains in this dir
             forecast = sigma*forecast # why does this have autograd in original paper? Never trains in this dir
         else:
@@ -191,7 +215,10 @@ class WaveGlow(torch.nn.Module):
             
             if k % self.n_early_every == 0 and k > 0:
                 if latent_z is None:
-                    z = torch.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()
+                    if self.cuda:
+                        z = torch.cuda.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()
+                    else:
+                        z = torch.FloatTensor(context.size(0), self.n_early_size, int(self.n_channels / self.n_group)).normal_()
                     forecast = torch.cat((sigma*z, forecast), 1)
                 else:
                     z = latent_z_parts[num_early_every_inserted]

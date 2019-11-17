@@ -1,9 +1,8 @@
 import torch
+from DataLoader import DataLoader
 import numpy as np
 import os
-from model import WaveGlow
-from utils import WaveGlowLoss
-
+from waveglow_model import WaveGlow, WaveGlowLoss
 
 def load_checkpoint(checkpoint_path, model, optimizer):
 	assert os.path.isfile(checkpoint_path)
@@ -11,15 +10,27 @@ def load_checkpoint(checkpoint_path, model, optimizer):
 	iteration = checkpoint_dict['iteration']
 	optimizer.load_state_dict(checkpoint_dict['optimizer'])
 	model_for_loading = checkpoint_dict['model']
-    model.load_state_dict(model_for_loading.state_dict())
-    print("Loaded checkpoint '%s' (iteration %d)" % (checkpoint_path, iteration))
-    return model, optimizer, iteration
+	model.load_state_dict(model_for_loading.state_dict())
+	print("Loaded checkpoint '%s' (iteration %d)" % (checkpoint_path, iteration))
+	return model, optimizer, iteration
 
 
-def save_checkpoint(model, optimizer, learning_rate, iteration, filepath):
+def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gpu=True):
 	print("Saving model and optimizer state at iteration %d to %s" % (iteration, filepath))
 
-	model_for_saving = WaveGlow().cuda()
+
+	model_for_saving = WaveGlow(n_context_channels=96, 
+					    n_flows=6, 
+					    n_group=24, 
+					    n_early_every=3,
+					    n_early_size=8,
+					    n_layers=2,
+					    dilation_list=[1,2],
+					    n_channels=96,
+					    kernel_size=3,
+					    cuda=use_gpu)
+	if use_gpu:
+		model_for_saving = model_for_saving.cuda()
 	model_for_saving.load_state_dict(model.state_dict())
 	torch.save({'model': model_for_saving,
 				'iteration': iteration,
@@ -28,54 +39,76 @@ def save_checkpoint(model, optimizer, learning_rate, iteration, filepath):
 
 
 
-def train(num_gpus, output_directory, epochs, learning_rate, batch_size, params, checkpointing=False, checkpoint_path="", seed=2019):
+def train(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, use_gpu="True"):
 	torch.manual_seed(seed)
-	torch.cuda.manual_seed(seed)
+	if use_gpu:
+		torch.cuda.manual_seed(seed)
 
+	if not os.path.isdir(output_directory[2:]): os.mkdir(output_directory[2:])
+	if checkpointing and not os.path.isdir(checkpoint_path[2:]): os.mkdir(checkpoint_path[2:])
 	criterion = WaveGlowLoss()
-	model = WaveGlow(params).cuda()
+	model = WaveGlow(n_context_channels=96, 
+					    n_flows=6, 
+					    n_group=24, 
+					    n_early_every=3,
+					    n_early_size=8,
+					    n_layers=2,
+					    dilation_list=[1,2],
+					    n_channels=96,
+					    kernel_size=3,
+					    cuda=use_gpu)
 
-	optimizer = torch.optim.Adam(mode.parameters(), lr=learning_rate)
+	if use_gpu:
+		model = model.cuda()
 
-	iteration = 0
-	if checkpoint_path != "":
-		model, optimizer, iteration = load_checkpoint(checkpoint_path, model, optimizer)
+	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-		iteration += 1
+	# iteration = 0
+	# if checkpoint_path != "":
+		# model, optimizer, iteration = load_checkpoint(checkpoint_path, model, optimizer)
 
-	trainset = WindSamp()
-	train_loader = DataLoader(trainset, num_workers=1, shuffle=False, 
-								sampler=train_sampler, 
-								batch_size=batch_size,
-								pin_memory=False, 
-								drop_last=True)
+		# iteration += 1
+
+	dataset = DataLoader()
 
 
 	model.train()
 	for epoch in range(epochs):
+		iteration = 0
 		print("Epoch: %d/%d" % (epoch+1, epochs))
-		for i, batch in enumerate(train_loader):
-
+		avg_loss = []
+		while(dataset.epoch_end):
 			model.zero_grad()
-			context, forecast = batch
+			context, forecast = dataset.sample(batch_size)
 
-			context = torch.autograd.Variable(context.cuda())
-			forecast = torch.autograd.Varible(forecast.cuda())
-			outputs = model((context, forecast))
+			if use_gpu:
+				forecast = torch.autograd.Varible(forecast.cuda())
+				context = torch.autograd.Variable(context.cuda())
+			else:
+				forecast = torch.autograd.Variable(torch.FloatTensor(forecast))
+				context = torch.autograd.Variable(torch.FloatTensor(context))
+			
+			z, log_s_list, log_det_w_list, early_out_shapes = model(forecast, context)
 
-			loss = criterion(outputs)
+
+			loss = criterion((z, log_s_list, log_det_w_list))
 			reduced_loss = loss.item()
 
 			loss.backward()
-
+			avg_loss.append(reduced_loss)
 			optimizer.step()
 			print("On iteration %d with loss %.4f" % (iteration, reduced_loss))
-			if (checkpointing and (iteration % iters_per_checkpoint == 0)):
-				checkpoint_path = "%s/waveglow_%d_%.4f" % (output_directory)
-
-				save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path)
-
 			iteration += 1
+			# if (checkpointing and (iteration % iters_per_checkpoint == 0)):
+
+		epoch_loss = sum(avg_loss)/len(avg_loss)
+		checkpoint_path = "%s/waveglow_epoch-%d_%.4f" % (output_directory, epoch, epoch_loss)
+
+		save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
+
+			
+
+		dataset.epoch_end = True
 
 
 
@@ -83,4 +116,4 @@ def train(num_gpus, output_directory, epochs, learning_rate, batch_size, params,
 
 
 if __name__ == "__main__":
-	train()
+	train(use_gpu=True)
