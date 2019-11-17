@@ -73,12 +73,8 @@ def training(num_gpus=0, output_directory='./train', epochs=1000, learning_rate=
 			model.zero_grad()
 			context, forecast = dataset.sample(batch_size)
 
-			if use_gpu:
-				forecast = torch.autograd.Varible(forecast.cuda())
-				context = torch.autograd.Variable(context.cuda())
-			else:
-				forecast = torch.autograd.Variable(torch.FloatTensor(forecast))
-				context = torch.autograd.Variable(torch.FloatTensor(context))
+			forecast = torch.autograd.Variable(torch.FloatTensor(forecast))
+			context = torch.autograd.Variable(torch.FloatTensor(context))
 			
 			z, log_s_list, log_det_w_list, early_out_shapes = model(forecast, context)
 
