@@ -12,7 +12,7 @@ class DataLoader:
 		self.small_subset = small_subset
 		if self.rolling:
 			if small_subset:
-				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 250, replace=False)
+				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 2000, replace=False)
 			else:
 				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
 		else:
@@ -29,7 +29,7 @@ class DataLoader:
 			self.sample_idx = 0
 			if self.rolling:
 				if self.small_subset:
-					self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 250, replace=False)
+					self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 2000, replace=False)
 				else:
 					self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
 			else:

@@ -16,12 +16,22 @@ parser.add_argument('--generate_per_epoch', dest='generate_per_epoch', type=int,
 parser.add_argument('--generate_final', dest='generate_final', type=int, default=1)
 parser.add_argument('--batch_size', dest='batch_size', type=int, default=12)
 parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-4)
+parser.add_argument('--n_context_channels', dest='n_context_channels', type=int, default=96)
+parser.add_argument('--n_flows', dest='n_flows', type=int, default=6)
+parser.add_argument('--n_group', dest='n_group', type=int, default=24)
+parser.add_argument('--n_early_every', dest='n_early_every', type=int, default=3)
+parser.add_argument('--n_early_size', dest='n_early_size', type=int, default=6)
+parser.add_argument('--n_layers', dest='n_layers', type=int, default=4)
+parser.add_argument('--dilation_list', dest='dilation_list', type=str, default='1 1 2 2')
+parser.add_argument('--n_channels', dest='n_channels', type=int, default=96)
+parser.add_argument('--kernel_size', dest='kernel_size', type=int, default=3)
 args = parser.parse_args()
 
 args.rolling = True if args.rolling else False
 args.small_subset = True if args.small_subset else False
 args.use_gpu = True if args.use_gpu else False
 args.checkpointing = True if args.checkpointing else False
+args.dilation_list = [int(i) for i in args.dilation_list.split(' ')]
 
 def load_checkpoint(checkpoint_path, model, optimizer):
 	assert os.path.isfile(checkpoint_path)
@@ -111,7 +121,7 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 			
 		dataset.epoch_end = True
 	plt.figure()
-	plt.plot(range(len(loss_iteration)), np.log10(loss_iteration))
+	plt.plot(range(len(loss_iteration)), np.log10(np.array(loss_iteration)+1.0))
 	plt.xlabel('iteration')
 	plt.ylabel('log10 of loss')
 	plt.savefig('total_loss_graph.png')
@@ -143,7 +153,17 @@ def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='f
 
 
 if __name__ == "__main__":
-	
+	# n_context_channels=96, n_flows=6, n_group=24, n_early_every=3, n_early_size=8, n_layers=2, dilation_list=[1,2], n_channels=96, kernel_size=3, use_gpu=True
+	# params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3]
+	params = [args.n_context_channels,
+				args.n_flows,
+				args.n_group,
+				args.n_early_every,
+				args.n_early_size,
+				args.n_layers,
+				args.dilation_list,
+				args.n_channels,
+				args.kernel_size]
 	dataset = DataLoader(rolling=args.rolling, small_subset=args.small_subset)
 	final_model = training(epochs=args.epochs, 
 							dataset=dataset, 
@@ -151,7 +171,8 @@ if __name__ == "__main__":
 							checkpointing=args.checkpointing, 
 							gen_tests=args.generate_per_epoch, 
 							batch_size=args.batch_size, 
-							learning_rate=args.learning_rate)
+							learning_rate=args.learning_rate,
+							params=params)
 	if args.generate_final:
 		generate_tests(dataset, final_model, use_gpu=args.use_gpu)
 
