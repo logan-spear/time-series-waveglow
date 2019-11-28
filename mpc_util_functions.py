@@ -210,7 +210,72 @@ def predict_wind(p_wind, baseline, autoreg_residual_params, t, M, L, K = 1):
 
 ########################################################################################
 
+def run_net_mpc(net, K):
+    '''
+    Run MPC using scenarios generated from the given WaveGlow model in net
+    K is the number of scenarios to use
+    '''
+    
+    T_MPC = intervals_per_day
+#     K = 20 # Number of scenarios to sample
 
+    energy_stored = np.empty(T)
+    target_output_MPC, wind_power_available_MPC, initial_storage_MPC, final_storage_MPC, final_energy_price, MPC_network = \
+        make_network(T_MPC, K)
+
+    initial_storage_MPC.value = np.matrix(initial_storage)
+    final_storage_MPC.value = np.matrix(initial_storage)
+    final_energy_price.value = np.matrix(MPC_final_energy_price)
+
+
+    def make_forecasts(t):
+        '''
+        Populates the cvx parameters target_output.MPC and wind_power_available_MPC
+        target_output_MPC is always the same
+        wind_power_available_MPC.value is a matrix of shape (T,K), where T is the length of one forecast (96)
+        and K is the number of scenarios (specified outside of this function). Each column represents
+        one forecast scenario. The first scalar element of every forecast is p_wind[sim_start_time+t]
+        '''
+        target_output_MPC.value = np.tile(target_output[t:t+T_MPC], (K,1)).T
+
+        #### Logan's code ####
+        # First, create the context torch tensors to be used as context for the model
+        context = p_wind[(sim_start_time+t+1-T_MPC):(sim_start_time+t+1)].values
+        context = np.reshape(context, (1, -1, 1))
+        context = np.repeat(context, K, axis=0)
+        context = torch.FloatTensor(context)
+
+        # Now, generate forecasts using this context:
+        scenarios = net.generate(context).numpy()
+
+        # Take only the first 95 entries, make the first entry p_wind[sim_start_time+t] for all
+        scenarios = np.hstack((
+            np.matrix([p_wind[sim_start_time+t]]*K).T,
+            scenarios[:, :-1]
+        ))
+
+        # Max and min out the wind power
+        scenarios = np.maximum(wind_power_min, scenarios)
+        scenarios = np.minimum(wind_power_max, scenarios)
+        wind_power_available_MPC.value = scenarios.T
+
+
+    def implement(t):
+        energy_stored[t] = MPC_network.devices[2].energy.value[0,0]
+        initial_storage_MPC.value = np.matrix(energy_stored[t])
+
+        
+    print("Results for K = ", K)
+    cost_MPC, MPC_results = \
+        run_mpc(MPC_network, T, make_forecasts, implement, verbose = False, solver='ECOS')
+
+    wind_gen, gas_gen, storage = MPC_network.devices[0:3]
+
+    print_and_plot_stats(wind_power_avail =  p_wind[sim_start_time:sim_end_time], 
+                         wind_power_used = -MPC_results.power[(wind_gen, 0)].flatten(), 
+                         gas_power = -MPC_results.power[(gas_gen,0)].flatten(), 
+                         output =  target_output[:T],
+                         cost = cost_MPC)
 
 
 
