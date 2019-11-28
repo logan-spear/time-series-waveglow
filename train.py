@@ -89,7 +89,7 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 		print("Epoch: %d/%d" % (epoch+1, epochs))
 		avg_loss = []
 		while(dataset.epoch_end):
-			model.zero_grad()
+			# model.zero_grad()
 			context, forecast = dataset.sample(batch_size)
 
 			if use_gpu:
@@ -104,6 +104,7 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 			loss = criterion((z, log_s_list, log_det_w_list))
 			reduced_loss = loss.item()
 			loss_iteration.append(reduced_loss)
+			optimizer.zero_grad()
 			loss.backward()
 			avg_loss.append(reduced_loss)
 			optimizer.step()
