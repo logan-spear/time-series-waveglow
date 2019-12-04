@@ -2,6 +2,7 @@ import multiprocessing, os
 from random import choice
 import numpy as np
 from waveglow_train import run_training
+from multiprocessing import Process
 import pickle
 
 def check_threads(threads):
