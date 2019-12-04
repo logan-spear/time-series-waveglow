@@ -1,7 +1,6 @@
 import multiprocessing, os
 from random import choice
 import numpy as np
-from utils import gen_layers, create_arg_string
 from waveglow_train import run_training
 
 def check_threads(threads):
