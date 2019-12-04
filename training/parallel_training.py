@@ -15,7 +15,7 @@ def check_threads(threads):
 
 # def run_new(args):
 	# os.system('python3 train.py %s' % args)
-with open("../list_of_232_configs", "rb") as fp:
+with open("./list_of_232_configs", "rb") as fp:
     test_list = pickle.load(fp)
 
 processes = []
@@ -34,7 +34,7 @@ use_gpu=False
 n_channels=96
 n_context_channels=96
 rolling=True
-datafile="../wind_power_data/wind_power_train.pickle"
+datafile="./wind_power_data/wind_power_train.pickle"
 valid_split=.2
 small_subset=False
 validation_patience=10
