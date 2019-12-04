@@ -6,32 +6,32 @@ from waveglow_model import WaveGlow, WaveGlowLoss
 import matplotlib.pyplot as plt
 import argparse
 
-parser = argparse.ArgumentParser(description='argument parser')
-parser.add_argument('--epochs', dest='epochs', type=int, default=100)
-parser.add_argument('--rolling', dest='rolling', type=int, default=1)
-parser.add_argument('--small_subset', dest='small_subset', type=int, default=0)
-parser.add_argument('--use_gpu', dest='use_gpu', type=int, default=1)
-parser.add_argument('--checkpointing', dest='checkpointing', type=int, default=1)
-parser.add_argument('--generate_per_epoch', dest='generate_per_epoch', type=int, default=1)
-parser.add_argument('--generate_final', dest='generate_final', type=int, default=1)
-parser.add_argument('--batch_size', dest='batch_size', type=int, default=12)
-parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-4)
-parser.add_argument('--n_context_channels', dest='n_context_channels', type=int, default=96)
-parser.add_argument('--n_flows', dest='n_flows', type=int, default=6)
-parser.add_argument('--n_group', dest='n_group', type=int, default=24)
-parser.add_argument('--n_early_every', dest='n_early_every', type=int, default=3)
-parser.add_argument('--n_early_size', dest='n_early_size', type=int, default=6)
-parser.add_argument('--n_layers', dest='n_layers', type=int, default=4)
-parser.add_argument('--dilation_list', dest='dilation_list', type=str, default='1 1 2 2')
-parser.add_argument('--n_channels', dest='n_channels', type=int, default=96)
-parser.add_argument('--kernel_size', dest='kernel_size', type=int, default=3)
-args = parser.parse_args()
+# parser = argparse.ArgumentParser(description='argument parser')
+# parser.add_argument('--epochs', dest='epochs', type=int, default=100)
+# parser.add_argument('--rolling', dest='rolling', type=int, default=1)
+# parser.add_argument('--small_subset', dest='small_subset', type=int, default=0)
+# parser.add_argument('--use_gpu', dest='use_gpu', type=int, default=1)
+# parser.add_argument('--checkpointing', dest='checkpointing', type=int, default=1)
+# parser.add_argument('--generate_per_epoch', dest='generate_per_epoch', type=int, default=1)
+# parser.add_argument('--generate_final', dest='generate_final', type=int, default=1)
+# parser.add_argument('--batch_size', dest='batch_size', type=int, default=12)
+# parser.add_argument('--learning_rate', dest='learning_rate', type=float, default=1e-4)
+# parser.add_argument('--n_context_channels', dest='n_context_channels', type=int, default=96)
+# parser.add_argument('--n_flows', dest='n_flows', type=int, default=6)
+# parser.add_argument('--n_group', dest='n_group', type=int, default=24)
+# parser.add_argument('--n_early_every', dest='n_early_every', type=int, default=3)
+# parser.add_argument('--n_early_size', dest='n_early_size', type=int, default=6)
+# parser.add_argument('--n_layers', dest='n_layers', type=int, default=4)
+# parser.add_argument('--dilation_list', dest='dilation_list', type=str, default='1 1 2 2')
+# parser.add_argument('--n_channels', dest='n_channels', type=int, default=96)
+# parser.add_argument('--kernel_size', dest='kernel_size', type=int, default=3)
+# args = parser.parse_args()
 
-args.rolling = True if args.rolling else False
-args.small_subset = True if args.small_subset else False
-args.use_gpu = True if args.use_gpu else False
-args.checkpointing = True if args.checkpointing else False
-args.dilation_list = [int(i) for i in args.dilation_list.split(' ')]
+# args.rolling = True if args.rolling else False
+# args.small_subset = True if args.small_subset else False
+# args.use_gpu = True if args.use_gpu else False
+# args.checkpointing = True if args.checkpointing else False
+# args.dilation_list = [int(i) for i in args.dilation_list.split(' ')]
 
 def load_checkpoint(checkpoint_path, model, optimizer):
 	assert os.path.isfile(checkpoint_path)
@@ -108,7 +108,7 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 			loss.backward()
 			avg_loss.append(reduced_loss)
 			optimizer.step()
-			print("On iteration %d with loss %.4f" % (iteration, reduced_loss))
+			# print("On iteration %d with loss %.4f" % (iteration, reduced_loss))
 			iteration += 1
 			# if (checkpointing and (iteration % iters_per_checkpoint == 0)):
 
@@ -119,14 +119,15 @@ def training(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, 
 			save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
 
 
-			
+		print("\tLoss: %.3f" % loss)
 		dataset.epoch_end = True
 	plt.figure()
-	plt.plot(range(len(loss_iteration)), np.log10(np.array(loss_iteration)+1.0))
+	plt.semilogy(range(len(loss_iteration)), np.array(loss_iteration))
+	# plt.plot(range(len(loss_iteration)), np.log10(np.array(loss_iteration)+1.0))
 	plt.xlabel('iteration')
-	plt.ylabel('log10 of loss')
-	plt.savefig('total_loss_graph.png')
-	plt.close()
+	plt.ylabel('loss')
+	# plt.savefig('total_loss_graph.png')
+	# plt.close()
 	return model
 
 def generate_tests(dataset, model, num_contexts=15, n=96, use_gpu=True, epoch='final'):
