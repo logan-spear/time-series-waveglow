@@ -59,7 +59,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		validation_loss = get_validation_loss(model, criterion, valid_context, valid_forecast)
 		print("Epoch [%d/%d] had training loss: %.4f and validation_loss: %.4f" % (epoch+1, epochs, epoch_loss, validation_loss))
 		
-		if max(curr_validation) < validation_loss:
+		if min(curr_validation) > validation_loss:
 			curr_validation = [validation_loss]
 			if gen_tests: generate_tests(dataset, model, 5, 96, use_gpu, str(epoch+1), mname=mname)
 			if checkpointing:
@@ -72,7 +72,8 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		if len(curr_validation) == validation_patience: end_training = True
 
 	if checkpointing:
-		model, optimizer, iteration, load_checkpoint(checkpoint_path, model, optimizer)
+		model, optimizer, iteration = load_checkpoint(checkpoint_path, model, optimizer)
+		
 	test_context, test_forecast = dataset.test_data()
 	test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, use_gpu, )
 
