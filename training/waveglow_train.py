@@ -11,7 +11,6 @@ from utils import set_gpu_train_tensor, set_gpu_tensor, load_checkpoint, save_ch
 
 # n_context_channels=96, n_flows=6, n_group=24, n_early_every=3, n_early_size=8, n_layers=2, dilation_list=[1,2], n_channels=96, kernel_size=3, use_gpu=True
 def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3], use_gpu=True, gen_tests=False, mname='model', validation_patience=10):
-	print("#############")
 	params.append(use_gpu)
 	torch.manual_seed(seed)
 	if use_gpu:
@@ -31,7 +30,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 	model.train()
 	loss_iteration = []
-	curr_validation = [-np.inf]
+	curr_validation = [np.inf]
 	end_training = False
 	for epoch in range(epochs):
 		if end_training: break
