@@ -21,7 +21,7 @@ with open("./list_of_232_configs", "rb") as fp:
 processes = []
 max_processes = 10
 
-print("Starting %d threads" % max_threads)
+print("Starting %d threads" % max_processes)
 
 
 epochs=250
@@ -46,7 +46,7 @@ for p in range(max_processes):
 
     processes[-1].start()
 
-print("Finished starting %d threads" % max_threads)
+print("Finished starting %d processes" % max_processes)
 
 while(len(test_list) > 0):
     count = check_processes(processes)
