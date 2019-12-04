@@ -21,7 +21,7 @@ with open("./list_of_232_configs", "rb") as fp:
     test_list = pickle.load(fp)
 
 threads = []
-max_threads = 10
+max_threads = 2
 
 print("Starting %d threads" % max_threads)
 

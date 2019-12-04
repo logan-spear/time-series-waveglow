@@ -11,7 +11,7 @@ def set_gpu_train_tensor(x, use_gpu):
 
 def set_gpu_tensor(x, use_gpu):
 	if use_gpu:
-		x = torch.cuda.FloatTensor(x)
+		x = torch.cuda.FloatTensor(x).to('cuda')
 	else:
 		x = torch.FloatTensor(x)
 

@@ -2,9 +2,9 @@ import pandas as pd
 import numpy as np
 
 class DataLoader:
-    def __init__(self, train_f="wind_power_data/wind_power_train.pickle", test_f = "wind_power_data/wind_power_test.pickle", n=96, rolling=True, small_subset=False, directory='.', valid_split=.2):
+    def __init__(self, train_f="wind_power_data/wind_power_train.pickle", test_f = "wind_power_data/wind_power_test.pickle", n=96, rolling=True, small_subset=False, directory='.', valid_split=.2, use_gpu=False):
         self.trainset = pd.read_pickle(directory+'/'+train_f).values
-        self.testset = pd.read_pickle(directory+'/'+test_f).values
+        self.testset = pd.read_pickle(directory+'/'+test_f).values.to
         print(len(self.testset))
         self.m = self.trainset.shape[0]
         self.m_test = self.testset.shape[0]

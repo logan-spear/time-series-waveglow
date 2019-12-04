@@ -1,4 +1,5 @@
 import torch
+import torch.multiprocessing as mp
 import numpy as np
 import os
 from waveglow_model import WaveGlow, WaveGlowLoss
@@ -51,7 +52,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 			loss.backward()
 			avg_loss.append(reduced_loss)
 			optimizer.step()
-			print("On iteration %d with loss %.4f" % (iteration, reduced_loss))
+			print("Epoch [%d/%d] on iteration %d with loss %.4f" % (epoch+1, epochs, iteration, reduced_loss))
 			iteration += 1
 
 		epoch_loss = sum(avg_loss)/len(avg_loss)
@@ -59,6 +60,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		print("Epoch [%d/%d] had training loss: %.4f and validation_loss: %.4f" % (epoch+1, epochs, epoch_loss, validation_loss))
 		
 		if min(curr_validation) > validation_loss:
+			print("Validation loss improved to %.5f" % validation_loss)
 			curr_validation = [validation_loss]
 			if gen_tests: generate_tests(dataset, model, 5, 96, use_gpu, str(epoch+1), mname=mname)
 			if checkpointing:
@@ -92,7 +94,13 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 
 
 def run_training(config, epochs=100, batch_size=24, seed=2019, generate_per_epoch=False, generate_final_plots=True, checkpointing=True, use_gpu=False, n_channels=96, n_context_channels=96, rolling=True, datafile="wind_power_data/wind_power_train.pickle", valid_split=.2, small_subset=False, validation_patience=10):
-	dataset = DataLoader(train_f=datafile, rolling=rolling, small_subset=small_subset, valid_split=valid_split)
+
+	torch.manual_seed(1234)
+	if use_gpu:
+    	torch.cuda.manual_seed(5678)
+
+	mp = mp.get_context('spawn')
+	dataset = DataLoader(train_f=datafile, rolling=rolling, small_subset=small_subset, valid_split=valid_split, use_gpu=use_gpu)
 	params = [n_context_channels,
 				config["n_flows"],
 				config["n_group"],
