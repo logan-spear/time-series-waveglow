@@ -65,7 +65,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 			best_validation = validation_loss
 			if gen_tests: generate_tests(dataset, model, 5, 96, use_gpu, str(epoch+1), mname=mname)
 			if checkpointing:
-				checkpoint_path = "%s/%s/epoch-%d_loss-%.4f" % (output_directory, mname, epoch, epoch_loss)
+				checkpoint_path = "%s/%s/epoch-%d_loss-%.4f" % (output_directory, mname, epoch, validation_loss)
 				save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
 
 			validation_streak = 0
@@ -80,7 +80,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		model, optimizer, iteration = load_checkpoint(checkpoint_path, model, optimizer)
 		
 	test_context, test_forecast = dataset.test_data()
-	test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, use_gpu, )
+	test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, use_gpu)
 
 	if not checkpointing:
 		checkpoint_path = "%s/%s/finalmodel_epoch-%d_testloss-%.4f_testmse_%.4f" % (output_directory, mname, epoch, test_loss, test_mse)
