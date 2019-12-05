@@ -30,8 +30,8 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 	model.train()
 	loss_iteration = []
-	curr_validation = [np.inf]
 	end_training = False
+	best_validation = np.inf; validation_streak = 0
 	for epoch in range(epochs):
 		if end_training: break
 		iteration = 0
@@ -58,24 +58,29 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		validation_loss = get_validation_loss(model, criterion, valid_context, valid_forecast)
 		print("Epoch [%d/%d] had training loss: %.4f and validation_loss: %.4f" % (epoch+1, epochs, epoch_loss, validation_loss))
 		
-		if min(curr_validation) > validation_loss:
+		# if min(curr_validation) > validation_loss:
+		if best_validation > validation_loss:
 			print("Validation loss improved to %.5f" % validation_loss)
-			curr_validation = [validation_loss]
+			# curr_validation = [validation_loss]
+			best_validation = validation_loss
 			if gen_tests: generate_tests(dataset, model, 5, 96, use_gpu, str(epoch+1), mname=mname)
 			if checkpointing:
-				checkpoint_path = "%s/%s/epoch-%d_loss-%.4f" % (output_directory, mname, epoch, epoch_loss)
+				checkpoint_path = "%s/%s/epoch-%d_loss-%.4f" % (output_directory, mname, epoch, validation_loss)
 				save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
+
+			validation_streak = 0
 		else:
-			curr_validation.append(validation_loss)
+			# curr_validation.append(validation_loss)
+			validation_streak += 1
 		dataset.epoch_end = True
 
-		if len(curr_validation) == validation_patience: end_training = True
+		if validation_streak == validation_patience: end_training = True
 
 	if checkpointing:
 		model, optimizer, iteration = load_checkpoint(checkpoint_path, model, optimizer)
 		
 	test_context, test_forecast = dataset.test_data()
-	test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, use_gpu, )
+	test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, use_gpu)
 
 	if not checkpointing:
 		checkpoint_path = "%s/%s/finalmodel_epoch-%d_testloss-%.4f_testmse_%.4f" % (output_directory, mname, epoch, test_loss, test_mse)
@@ -116,8 +121,13 @@ def run_training(config, epochs=100, batch_size=24, seed=2019, generate_per_epoc
 
 	if not os.path.isdir(output_directory):
 		os.mkdir(output_directory)
-		
-	mname = 'waveglow_ncontextchannels-%d_nflows-%d_ngroup-%d-nearlyevery-%d-nearlysize-%d-nlayers-%d_dilations-%s_nchannels_%d-kernelsize-%d-lr-%.5f_seed-%d' % (params[0], params[1], params[2], params[3], params[4], params[5], str(params[6]), params[7], params[8], config["learning_rate"], seed)
+	
+	dilation_str = ''
+	for x in config["dilation_list"][:-1]:
+		dilation_str += '%d-'%x
+	dilation_str += '%d'%config["dilation_list"][-1]
+	# dilation_str = "%d-"%x for x in args.dilation_list[:-1]] + 
+	mname = 'waveglow_ncontextchannels-%d_nflows-%d_ngroup-%d-nearlyevery-%d-nearlysize-%d-nlayers-%d_dilations-%s_nchannels_%d-kernelsize-%d-lr-%.5f_seed-%d' % (params[0], params[1], params[2], params[3], params[4], params[5], dilation_str, params[7], params[8], config["learning_rate"], seed)
 	if not os.path.isdir(output_directory+"/"+mname):
 		print("Making a new directory at " + output_directory+"/"+mname)
 		os.mkdir(output_directory+'/'+mname)

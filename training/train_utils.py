@@ -40,9 +40,9 @@ def test_mse_loss(context, forecast, model, use_gpu, generations_per_sample=4):
 	mse_loss = 0.0
 	for i in range(generations_per_sample):
 		if use_gpu:
-			gen_forecast = model.generate(context)
-		else:
 			gen_forecast = model.generate(context).cpu()
+		else:
+			gen_forecast = model.generate(context)
 		mse_loss += np.square(gen_forecast-forecast).mean(axis=1).mean()#np.square(gen_forecast-forecast).mean(axis=0)
 		
 
