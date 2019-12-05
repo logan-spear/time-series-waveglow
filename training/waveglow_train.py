@@ -121,7 +121,11 @@ def run_training(config, epochs=100, batch_size=24, seed=2019, generate_per_epoc
 
 	if not os.path.isdir(output_directory):
 		os.mkdir(output_directory)
-		
+	
+	for x in config["dilation_list"][:-1]:
+		dilation_str += '%d-'%x
+	dilation_str += '%d'%config["dilation_list"][-1]
+	# dilation_str = "%d-"%x for x in args.dilation_list[:-1]] + 
 	mname = 'waveglow_ncontextchannels-%d_nflows-%d_ngroup-%d-nearlyevery-%d-nearlysize-%d-nlayers-%d_dilations-%s_nchannels_%d-kernelsize-%d-lr-%.5f_seed-%d' % (params[0], params[1], params[2], params[3], params[4], params[5], str(params[6]), params[7], params[8], config["learning_rate"], seed)
 	if not os.path.isdir(output_directory+"/"+mname):
 		print("Making a new directory at " + output_directory+"/"+mname)
