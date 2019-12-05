@@ -17,11 +17,10 @@ def check_threads(threads):
 
 # def run_new(args):
 	# os.system('python3 train.py %s' % args)
-with open("./list_of_232_configs", "rb") as fp:
+with open("./training_config_lists/config_list_2_of_10", "rb") as fp:
 	test_list = pickle.load(fp)
 
 
-test_list = test_list[:int(len(test_list)/2)]
 threads = []
 max_threads = 1
 
