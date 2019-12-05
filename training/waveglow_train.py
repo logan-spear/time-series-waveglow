@@ -30,8 +30,8 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 	optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 	model.train()
 	loss_iteration = []
-	curr_validation = [np.inf]
 	end_training = False
+	best_validation = np.inf; validation_streak = 0
 	for epoch in range(epochs):
 		if end_training: break
 		iteration = 0
@@ -58,18 +58,23 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		validation_loss = get_validation_loss(model, criterion, valid_context, valid_forecast)
 		print("Epoch [%d/%d] had training loss: %.4f and validation_loss: %.4f" % (epoch+1, epochs, epoch_loss, validation_loss))
 		
-		if min(curr_validation) > validation_loss:
+		# if min(curr_validation) > validation_loss:
+		if best_validation > validation_loss
 			print("Validation loss improved to %.5f" % validation_loss)
-			curr_validation = [validation_loss]
+			# curr_validation = [validation_loss]
+			best_validation = validation_loss
 			if gen_tests: generate_tests(dataset, model, 5, 96, use_gpu, str(epoch+1), mname=mname)
 			if checkpointing:
 				checkpoint_path = "%s/%s/epoch-%d_loss-%.4f" % (output_directory, mname, epoch, epoch_loss)
 				save_checkpoint(model, optimizer, learning_rate, iteration, checkpoint_path, use_gpu)
+
+			validation_streak = 0
 		else:
-			curr_validation.append(validation_loss)
+			# curr_validation.append(validation_loss)
+			validation_streak += 1
 		dataset.epoch_end = True
 
-		if len(curr_validation) == validation_patience: end_training = True
+		if validation_streak == validation_patience: end_training = True
 
 	if checkpointing:
 		model, optimizer, iteration = load_checkpoint(checkpoint_path, model, optimizer)
