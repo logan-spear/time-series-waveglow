@@ -1,5 +1,4 @@
 import torch
-import torch.multiprocessing as mp
 import numpy as np
 import os
 from waveglow_model import WaveGlow, WaveGlowLoss
@@ -99,7 +98,6 @@ def run_training(config, epochs=100, batch_size=24, seed=2019, generate_per_epoc
 	if use_gpu:
 		torch.cuda.manual_seed(5678)
 
-	mp = mp.get_context('spawn')
 	dataset = DataLoader(train_f=datafile, rolling=rolling, small_subset=small_subset, valid_split=valid_split, use_gpu=use_gpu)
 	params = [n_context_channels,
 				config["n_flows"],
