@@ -59,7 +59,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		print("Epoch [%d/%d] had training loss: %.4f and validation_loss: %.4f" % (epoch+1, epochs, epoch_loss, validation_loss))
 		
 		# if min(curr_validation) > validation_loss:
-		if best_validation > validation_loss
+		if best_validation > validation_loss:
 			print("Validation loss improved to %.5f" % validation_loss)
 			# curr_validation = [validation_loss]
 			best_validation = validation_loss

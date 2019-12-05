@@ -47,29 +47,29 @@ while(len(test_list) > 0):
 	run_training(config, epochs, batch_size, seed, generate_per_epoch, generate_final_plots, checkpointing, use_gpu, n_channels, n_context_channels, rolling, datafile, valid_split, small_subset, validation_patience)
 
 # for t in range(max_threads):
-# 	config = test_list.pop()
-# 	threads.append(threading.Thread(target=run_training, args=(config, epochs, batch_size, seed, generate_per_epoch, generate_final_plots, checkpointing, use_gpu, n_channels, n_context_channels, rolling, datafile, valid_split, small_subset, validation_patience,)))
+#   config = test_list.pop()
+#   threads.append(threading.Thread(target=run_training, args=(config, epochs, batch_size, seed, generate_per_epoch, generate_final_plots, checkpointing, use_gpu, n_channels, n_context_channels, rolling, datafile, valid_split, small_subset, validation_patience,)))
 
-# 	threads[-1].start()
+#   threads[-1].start()
 
 # print("Finished starting %d threads" % max_threads)
 
 # while(len(test_list) > 0):
-# 	count = check_threads(threads)
-# 	if count > 0:
-# 		for c in range(count):
-# 			if len(test_list) == 0: break
+#   count = check_threads(threads)
+#   if count > 0:
+#       for c in range(count):
+#           if len(test_list) == 0: break
 		
-# 			# threads.append(Thread(target=run_new, args=(new_args,)))
-# 			# print("Starting thread for node %d" % next_node)
-# 			# threads[-1].start()
-# 			# num_tests-=1
-# 			config = test_list.pop()
-# 			threads.append(threading.Thread(target=run_training, args=(config, epochs, batch_size, seed, generate_per_epoch, generate_final_plots, checkpointing, use_gpu, n_channels, n_context_channels, rolling, datafile, valid_split, small_subset, validation_patience,)))
+#           # threads.append(Thread(target=run_new, args=(new_args,)))
+#           # print("Starting thread for node %d" % next_node)
+#           # threads[-1].start()
+#           # num_tests-=1
+#           config = test_list.pop()
+#           threads.append(threading.Thread(target=run_training, args=(config, epochs, batch_size, seed, generate_per_epoch, generate_final_plots, checkpointing, use_gpu, n_channels, n_context_channels, rolling, datafile, valid_split, small_subset, validation_patience,)))
 
-# 			threads[-1].start()
-# 	else:
-# 		continue
+#           threads[-1].start()
+#   else:
+#       continue
 		
 # for t in threads:
-# 	t.join()
+#   t.join()
