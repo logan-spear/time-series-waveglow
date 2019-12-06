@@ -17,15 +17,14 @@ def set_gpu_tensor(x, use_gpu):
 
 	return x
 
-def load_checkpoint(checkpoint_path, model, optimizer):
+def load_checkpoint(checkpoint_path, model):
 	assert(os.path.isfile(checkpoint_path))
 	checkpoint_dict = torch.load(checkpoint_path, map_location='cpu')
 	iteration = checkpoint_dict['iteration']
-	optimizer.load_state_dict(checkpoint_dict['optimizer'])
 	model_for_loading = checkpoint_dict['model']
 	model.load_state_dict(model_for_loading.state_dict())
 	print("Loaded checkpoint '%s' (iteration %d)" % (checkpoint_path, iteration))
-	return model, optimizer, iteration
+	return model, iteration
 
 
 def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, use_gpu=True):
