@@ -77,7 +77,7 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		if validation_streak == validation_patience: end_training = True
 
 	if checkpointing:
-		model, optimizer, iteration = load_checkpoint(checkpoint_path, model, optimizer)
+		model iteration = load_checkpoint(checkpoint_path, model)
 		
 	test_context, test_forecast = dataset.test_data()
 	test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, use_gpu)
