@@ -46,14 +46,15 @@ wind_power_max = 16.
 wind_power_min = 0.  
 
 # Realistic numbers for battery (makes for uninteresting optimization problems)
-# storage_capacity = wind_power_max / 10 # MWh, using a 10:1 ratio with wind power
-# battery_charge_max = storage_capacity # a full charge in 1 hour
-# battery_discharge_max = storage_capacity # a full discharge in 1 hour
+num_hours_battery = 4 # number of hours takes for battery to full charge/discharge
+storage_capacity = wind_power_max / 10 # MWh, using a 10:1 ratio with wind power
+battery_charge_max = storage_capacity / num_hours_battery
+battery_discharge_max = storage_capacity / num_hours_battery
 
 # Going back to original paper numbers, problem isn't interesting when battery is so small
-storage_capacity = 100 # MWh
-battery_charge_max = storage_capacity / 10. # a full charge in 10 hours
-battery_discharge_max = storage_capacity / 10. # a full discharge in 10 hours
+# storage_capacity = 100 # MWh
+# battery_charge_max = storage_capacity / 10. # a full charge in 10 hours
+# battery_discharge_max = storage_capacity / 10. # a full discharge in 10 hours
 
 initial_storage = storage_capacity // 2
 

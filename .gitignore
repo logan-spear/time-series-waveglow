@@ -1,3 +1,4 @@
 .ipynb_checkpoints/
 __pycache__/
 CHECKPOINTS_FROM_GCLOUD
+.DS_Store
