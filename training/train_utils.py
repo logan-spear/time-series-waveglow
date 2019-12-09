@@ -1,6 +1,6 @@
 import numpy as np
 import torch, os
-from utils import set_gpu_tensor
+from utils import set_gpu_tensor, set_gpu_train_tensor
 import matplotlib.pyplot as plt
 import pandas as pd
 
