@@ -44,6 +44,7 @@ model = waveglow_model.WaveGlow(
     kernel_size=3, use_cuda=True);
 
 model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-12_loss--0.3116", model)
+model.cuda()
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-12-nearlyevery-99-nearlysize-99-nlayers-8_dilations-1-1-2-2-2-2-4-4_nchannels_96-kernelsize-3-lr-0.00100_seed-2019")
 print(test_loss)
@@ -75,6 +76,7 @@ model = waveglow_model.WaveGlow(
     kernel_size=9, use_cuda=True);
 
 model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-19_loss--0.2139", model)
+model.cuda()
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-16_dilations-1-1-2-2-2-2-2-2-2-2-2-2-2-2-4-4_nchannels_96-kernelsize-9-lr-0.00100_seed-2019")
 print(test_loss)
@@ -104,6 +106,7 @@ model = waveglow_model.WaveGlow(
     kernel_size=9, use_cuda=True);
 
 model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-22_loss--0.2237", model)
+model.cuda()
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-4_dilations-1-1-2-2_nchannels_96-kernelsize-9-lr-0.00100_seed-2019")
 print(test_loss)
@@ -133,6 +136,7 @@ model = waveglow_model.WaveGlow(
     kernel_size=9, use_cuda=True);
 
 model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-36_loss—.1936", model)
+model.cuda()
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-4_dilations-1-1-2-2_nchannels_96-kernelsize-9-lr-0.00100_seed-2019")
 print(test_loss)
@@ -163,6 +167,7 @@ model = waveglow_model.WaveGlow(
     kernel_size=9, use_cuda=True);
 
 model, iteration_num = utils.load_checkpoint("./checkpoints/epoch_9_loss—.224", model)
+model.cuda()
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-8_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-8_dilations-1-1-2-2-2-2-4-4_nchannels_96-kernelsize-5-lr-0.00100_seed-2019")
 print(test_loss)
