@@ -2,3 +2,10 @@
 __pycache__/
 CHECKPOINTS_FROM_GCLOUD
 .DS_Store
+training/checkpoints/epoch-12_loss--0.3116
+training/checkpoints/epoch-19_loss--0.2139
+training/checkpoints/epoch-22_loss--0.2237
+training/checkpoints/epoch-34_loss--0.1882
+training/context.csv
+training/forecasts.csv
+training/predictions.csv
