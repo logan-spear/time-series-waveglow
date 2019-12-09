@@ -2,12 +2,15 @@ import utils, waveglow_model
 import DataLoader
 from waveglow_model import WaveGlowLoss
 from train_utils import get_test_loss_and_mse
+import torch
+import numpy as np
 
 
 dataset = DataLoader.DataLoader(test_f="./wind_power_data/wind_power_test.pickle", train_f="./wind_power_data/wind_power_train.pickle", rolling=True, small_subset=False, valid_split=.2, use_gpu=False)
 criterion = WaveGlowLoss()
 test_context, test_forecast = dataset.test_data()
 
+i = 96
 context1 = torch.cuda.FloatTensor(test_context[i:i+96])
 context2 = torch.cuda.FloatTensor(test_context[i+96:i+96*2])
 context3 = torch.cuda.FloatTensor(test_context[i+96*2:i+96*3])
@@ -40,7 +43,7 @@ model = waveglow_model.WaveGlow(
     n_channels=96,
     kernel_size=3, use_cuda=True);
 
-model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-12_loss--0.3116", wg_model)
+model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-12_loss--0.3116", model)
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-12-nearlyevery-99-nearlysize-99-nlayers-8_dilations-1-1-2-2-2-2-4-4_nchannels_96-kernelsize-3-lr-0.00100_seed-2019")
 print(test_loss)
@@ -71,7 +74,7 @@ model = waveglow_model.WaveGlow(
     n_channels=96,
     kernel_size=9, use_cuda=True);
 
-model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-19_loss--0.2139", wg_model)
+model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-19_loss--0.2139", model)
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-16_dilations-1-1-2-2-2-2-2-2-2-2-2-2-2-2-4-4_nchannels_96-kernelsize-9-lr-0.00100_seed-2019")
 print(test_loss)
@@ -100,7 +103,7 @@ model = waveglow_model.WaveGlow(
     n_channels=96,
     kernel_size=9, use_cuda=True);
 
-model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-22_loss--0.2237", wg_model)
+model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-22_loss--0.2237", model)
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-4_dilations-1-1-2-2_nchannels_96-kernelsize-9-lr-0.00100_seed-2019")
 print(test_loss)
@@ -129,7 +132,7 @@ model = waveglow_model.WaveGlow(
     n_channels=96,
     kernel_size=9, use_cuda=True);
 
-model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-36_loss—.1936", wg_model)
+model, iteration_num = utils.load_checkpoint("./checkpoints/epoch-36_loss—.1936", model)
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-4_dilations-1-1-2-2_nchannels_96-kernelsize-9-lr-0.00100_seed-2019")
 print(test_loss)
@@ -159,7 +162,7 @@ model = waveglow_model.WaveGlow(
     n_channels=96,
     kernel_size=9, use_cuda=True);
 
-model, iteration_num = utils.load_checkpoint("./checkpoints/epoch_9_loss—.224", wg_model)
+model, iteration_num = utils.load_checkpoint("./checkpoints/epoch_9_loss—.224", model)
 test_loss, test_mse = get_test_loss_and_mse(model, criterion, test_context, test_forecast, True)
 print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-8_ngroup-24-nearlyevery-99-nearlysize-99-nlayers-8_dilations-1-1-2-2-2-2-4-4_nchannels_96-kernelsize-5-lr-0.00100_seed-2019")
 print(test_loss)
@@ -178,7 +181,7 @@ for i in range(5):
 
 
 
-np.savetxt('./context1.csv', np.vstack([[context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
+np.savetxt('./context1.csv', np.vstack([context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
 np.savetxt('./context2.csv', np.vstack([context2.cpu()]+[forecast2.cpu()]+context2s), delimiter=',')
 np.savetxt('./context3.csv', np.vstack([context3.cpu()]+[forecast3.cpu()]+context3s), delimiter=',')
 np.savetxt('./context4.csv', np.vstack([context4.cpu()]+[forecast4.cpu()]+context4s), delimiter=',')
