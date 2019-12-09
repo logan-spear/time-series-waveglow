@@ -10,6 +10,8 @@ dataset = DataLoader.DataLoader(test_f="./wind_power_data/wind_power_test.pickle
 criterion = WaveGlowLoss()
 test_context, test_forecast = dataset.test_data()
 
+context1s = []; context2s = []; context3s = []; context4s = []; context5s = []; context6s = []; context7s = []; context8s = []; context9s = []
+
 i = 96
 context1 = torch.cuda.FloatTensor(test_context[i:i+96])
 context2 = torch.cuda.FloatTensor(test_context[i+96:i+96*2])
