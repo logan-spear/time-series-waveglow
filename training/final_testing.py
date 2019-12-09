@@ -13,8 +13,14 @@ test_context, test_forecast = dataset.test_data()
 context1s = []; context2s = []; context3s = []; context4s = []; context5s = []; context6s = []; context7s = []; context8s = []; context9s = []
 
 i = 96
-context = torch.cuda.FloatTensor(np.vstack([test_context[i+more] for more in range(0, 96*9, 96)]))
-forecasts = np.vstack([test_forecasts[i+more] for more in range(0, 96*9, 96)])
+
+context = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(0, dataset.testset.shape[0]-2*dataset.n, dataset.n)])
+context = context[:, :, None]
+forecast = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(dataset.n, dataset.testset.shape[0]-dataset.n)])
+
+# context = torch.cuda.FloatTensor(np.vstack([test_context[i+more].reshape(1, 96)	 for more in range(0, 96*9, 96)]))
+# context = context[:, :, None]
+# forecasts = np.vstack([test_forecast[i+more] for more in range(0, 96*9, 96)])
 # context2 = torch.cuda.FloatTensor(test_context[i+96])
 # context3 = torch.cuda.FloatTensor(test_context[i+96*2])
 # context4 = torch.cuda.FloatTensor(test_context[i+96*3])
