@@ -14,36 +14,15 @@ context1s = []; context2s = []; context3s = []; context4s = []; context5s = []; 
 
 i = 96
 
-context = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(0, dataset.testset.shape[0]-2*dataset.n, dataset.n)])
-forecast = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(dataset.n, dataset.testset.shape[0]-dataset.n)])
+context = np.vstack([np.reshape(dataset.testset[i-dataset.n:i], [1, dataset.n]) for i in range(dataset.n, dataset.n*10, dataset.n)])
+forecast = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(dataset.n, dataset.n*10, dataset.n)])
 
-context = np.reshape(context, [num_contexts, dataset.n])
+context = np.reshape(context, [9, dataset.n])
 context = context[:, :, None]
-forecast = np.reshape(forecast, [num_contexts, dataset.n])
-
-# context = torch.cuda.FloatTensor(np.vstack([test_context[i+more].reshape(1, 96)	 for more in range(0, 96*9, 96)]))
-# context = context[:, :, None]
-# forecasts = np.vstack([test_forecast[i+more] for more in range(0, 96*9, 96)])
-# context2 = torch.cuda.FloatTensor(test_context[i+96])
-# context3 = torch.cuda.FloatTensor(test_context[i+96*2])
-# context4 = torch.cuda.FloatTensor(test_context[i+96*3])
-# context5 = torch.cuda.FloatTensor(test_context[i+96*4])
-# context6 = torch.cuda.FloatTensor(test_context[i+96*5])
-# context7 = torch.cuda.FloatTensor(test_context[i+96*6])
-# context8 = torch.cuda.FloatTensor(test_context[i+96*7])
-# context9 = torch.cuda.FloatTensor(test_context[i+96*8])
-# forecast1 = torch.cuda.FloatTensor(test_forecast[i])
-# forecast2 = torch.cuda.FloatTensor(test_forecast[i+96])
-# forecast3 = torch.cuda.FloatTensor(test_forecast[i+96*2])
-# forecast4 = torch.cuda.FloatTensor(test_forecast[i+96*3])
-# forecast5 = torch.cuda.FloatTensor(test_forecast[i+96*4])
-# forecast6 = torch.cuda.FloatTensor(test_forecast[i+96*5])
-# forecast7 = torch.cuda.FloatTensor(test_forecast[i+96*6])
-# forecast8 = torch.cuda.FloatTensor(test_forecast[i+96*7])
-# forecast9 = torch.cuda.FloatTensor(test_forecast[i+96*8])
-
-
+forecast = np.reshape(forecast, [9, dataset.n])
 # print(context1.cpu())
+# print(context.size(0))
+context = torch.cuda.FloatTensor(context).to('cuda')
 model = waveglow_model.WaveGlow(
     n_context_channels=96, 
     n_flows=4, 
