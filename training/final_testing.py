@@ -179,7 +179,7 @@ for i in range(5):
 
 
 context1s = np.savetxt('./context1.csv', np.vstack([[context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
-context2s = np.savetxt('./context2.csv', np.vstack[context2.cpu()]+[forecast2.cpu()]+context2s), delimiter=',')
+context2s = np.savetxt('./context2.csv', np.vstack([context2.cpu()]+[forecast2.cpu()]+context2s), delimiter=',')
 context3s = np.savetxt('./context3.csv', np.vstack([context3.cpu()]+[forecast3.cpu()]+context3s), delimiter=',')
 context4s = np.savetxt('./context4.csv', np.vstack([context4.cpu()]+[forecast4.cpu()]+context4s), delimiter=',')
 context5s = np.savetxt('./context5.csv', np.vstack([context5.cpu()]+[forecast5.cpu()]+context5s), delimiter=',')
