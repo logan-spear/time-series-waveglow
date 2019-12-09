@@ -15,8 +15,11 @@ context1s = []; context2s = []; context3s = []; context4s = []; context5s = []; 
 i = 96
 
 context = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(0, dataset.testset.shape[0]-2*dataset.n, dataset.n)])
-context = context[:, :, None]
 forecast = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(dataset.n, dataset.testset.shape[0]-dataset.n)])
+
+context = np.reshape(context, [num_contexts, dataset.n])
+context = context[:, :, None]
+forecast = np.reshape(forecast, [num_contexts, dataset.n])
 
 # context = torch.cuda.FloatTensor(np.vstack([test_context[i+more].reshape(1, 96)	 for more in range(0, 96*9, 96)]))
 # context = context[:, :, None]
