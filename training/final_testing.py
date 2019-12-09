@@ -33,7 +33,7 @@ forecast8 = torch.cuda.FloatTensor(test_context[i+96*7+96:i+96*8+96])
 forecast9 = torch.cuda.FloatTensor(test_context[i+96*8+96:i+96*9+96])
 
 
-
+print(context1.cpu())
 model = waveglow_model.WaveGlow(
     n_context_channels=96, 
     n_flows=4, 
@@ -54,6 +54,7 @@ print(test_mse)
 
 for i in range(5):
 	context1s.append(model.generate(context1).cpu())
+	print(context1s[-1])
 	context2s.append(model.generate(context2).cpu())
 	context3s.append(model.generate(context3).cpu())
 	context4s.append(model.generate(context4).cpu())
