@@ -98,8 +98,8 @@ for i in range(5):
 
 model = waveglow_model.WaveGlow(
     n_context_channels=96, 
-    n_flows=16, 
-    n_group=48, 
+    n_flows=4, 
+    n_group=24, 
     n_early_every=99,
     n_early_size=99,
     n_layers=4,
@@ -157,6 +157,7 @@ for i in range(5):
 
 
 
+
 model = waveglow_model.WaveGlow(
     n_context_channels=96, 
     n_flows=8, 
@@ -166,7 +167,7 @@ model = waveglow_model.WaveGlow(
     n_layers=8,
     dilation_list=[1,1,2,2,2,2,4,4],
     n_channels=96,
-    kernel_size=9, use_cuda=True);
+    kernel_size=5, use_cuda=True);
 
 model, iteration_num = utils.load_checkpoint("./checkpoints/epoch_9_loss—.224", model)
 model.cuda()

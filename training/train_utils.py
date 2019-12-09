@@ -78,7 +78,7 @@ def get_test_loss_and_mse(model, criterion, context, forecast, use_gpu):
 	test_mse = test_mse/batches
 	test_loss = test_loss/batches
 
-	return test_loss, test_mse
+	return test_loss, test_mse.cpu()
 
 
 def get_test_loss(model, criterion, context, forecast, use_gpu):
