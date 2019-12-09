@@ -178,14 +178,14 @@ for i in range(5):
 
 
 
-context1s = np.savetxt('./context1.csv', np.vstack([[context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
-context2s = np.savetxt('./context2.csv', np.vstack([context2.cpu()]+[forecast2.cpu()]+context2s), delimiter=',')
-context3s = np.savetxt('./context3.csv', np.vstack([context3.cpu()]+[forecast3.cpu()]+context3s), delimiter=',')
-context4s = np.savetxt('./context4.csv', np.vstack([context4.cpu()]+[forecast4.cpu()]+context4s), delimiter=',')
-context5s = np.savetxt('./context5.csv', np.vstack([context5.cpu()]+[forecast5.cpu()]+context5s), delimiter=',')
-context6s = np.savetxt('./context6.csv', np.vstack([context6.cpu()]+[forecast6.cpu()]+context6s), delimiter=',')
-context7s = np.savetxt('./context7.csv', np.vstack([context7.cpu()]+[forecast7.cpu()]+context7s), delimiter=',')
-context8s = np.savetxt('./context8.csv', np.vstack([context8.cpu()]+[forecast8.cpu()]+context8s), delimiter=',')
-context9s = np.savetxt('./context9.csv', np.vstack([context9.cpu()]+[forecast9.cpu()]+context9s), delimiter=',')
+np.savetxt('./context1.csv', np.vstack([[context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
+np.savetxt('./context2.csv', np.vstack([context2.cpu()]+[forecast2.cpu()]+context2s), delimiter=',')
+np.savetxt('./context3.csv', np.vstack([context3.cpu()]+[forecast3.cpu()]+context3s), delimiter=',')
+np.savetxt('./context4.csv', np.vstack([context4.cpu()]+[forecast4.cpu()]+context4s), delimiter=',')
+np.savetxt('./context5.csv', np.vstack([context5.cpu()]+[forecast5.cpu()]+context5s), delimiter=',')
+np.savetxt('./context6.csv', np.vstack([context6.cpu()]+[forecast6.cpu()]+context6s), delimiter=',')
+np.savetxt('./context7.csv', np.vstack([context7.cpu()]+[forecast7.cpu()]+context7s), delimiter=',')
+np.savetxt('./context8.csv', np.vstack([context8.cpu()]+[forecast8.cpu()]+context8s), delimiter=',')
+np.savetxt('./context9.csv', np.vstack([context9.cpu()]+[forecast9.cpu()]+context9s), delimiter=',')
 
 
