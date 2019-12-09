@@ -67,8 +67,8 @@ def get_test_loss_and_mse(model, criterion, context, forecast, use_gpu):
 	test_loss = 0; test_mse = 0; test_batch = 1000; batches = 0
 	for i in range(0, context.shape[0], test_batch):
 		batches+=1
-		context_batch = set_gpu_tensor(context[i:i+(test_batch if i+test_batch < context.shape[0] else context.shape[0])], use_gpu)
-		forecast_batch = set_gpu_tensor(forecast[i:i+(test_batch if i+test_batch < context.shape[0] else context.shape[0])], use_gpu)
+		context_batch = set_gpu_train_tensor(context[i:i+(test_batch if i+test_batch < context.shape[0] else context.shape[0])], use_gpu)
+		forecast_batch = set_gpu_train_tensor(forecast[i:i+(test_batch if i+test_batch < context.shape[0] else context.shape[0])], use_gpu)
 
 		z, log_s_list, log_det_w_list, early_out_shapes = model(forecast_batch, context_batch)
 		loss = criterion((z, log_s_list, log_det_w_list))
