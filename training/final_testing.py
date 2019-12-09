@@ -48,14 +48,14 @@ print(test_mse)
 
 for i in range(5):
 	context1s.append(model.generate(context1).cpu())
-	context2s.append(model.generate(context2).cpu()))
-	context3s.append(model.generate(context3).cpu()))
-	context4s.append(model.generate(context4).cpu()))
-	context5s.append(model.generate(context5).cpu()))
-	context6s.append(model.generate(context6).cpu()))
-	context7s.append(model.generate(context7).cpu()))
-	context8s.append(model.generate(context8).cpu()))
-	context9s.append(model.generate(context9).cpu()))
+	context2s.append(model.generate(context2).cpu())
+	context3s.append(model.generate(context3).cpu())
+	context4s.append(model.generate(context4).cpu())
+	context5s.append(model.generate(context5).cpu())
+	context6s.append(model.generate(context6).cpu())
+	context7s.append(model.generate(context7).cpu())
+	context8s.append(model.generate(context8).cpu())
+	context9s.append(model.generate(context9).cpu())
 
 # 5 models, 9 contexts, 5 generations per contex = 45 total
 
@@ -79,14 +79,14 @@ print(test_mse)
 
 for i in range(5):
 	context1s.append(model.generate(context1).cpu())
-	context2s.append(model.generate(context2).cpu()))
-	context3s.append(model.generate(context3).cpu()))
-	context4s.append(model.generate(context4).cpu()))
-	context5s.append(model.generate(context5).cpu()))
-	context6s.append(model.generate(context6).cpu()))
-	context7s.append(model.generate(context7).cpu()))
-	context8s.append(model.generate(context8).cpu()))
-	context9s.append(model.generate(context9).cpu()))
+	context2s.append(model.generate(context2).cpu())
+	context3s.append(model.generate(context3).cpu())
+	context4s.append(model.generate(context4).cpu())
+	context5s.append(model.generate(context5).cpu())
+	context6s.append(model.generate(context6).cpu())
+	context7s.append(model.generate(context7).cpu())
+	context8s.append(model.generate(context8).cpu())
+	context9s.append(model.generate(context9).cpu())
 
 
 model = waveglow_model.WaveGlow(
@@ -108,14 +108,14 @@ print(test_mse)
 
 for i in range(5):
 	context1s.append(model.generate(context1).cpu())
-	context2s.append(model.generate(context2).cpu()))
-	context3s.append(model.generate(context3).cpu()))
-	context4s.append(model.generate(context4).cpu()))
-	context5s.append(model.generate(context5).cpu()))
-	context6s.append(model.generate(context6).cpu()))
-	context7s.append(model.generate(context7).cpu()))
-	context8s.append(model.generate(context8).cpu()))
-	context9s.append(model.generate(context9).cpu()))
+	context2s.append(model.generate(context2).cpu())
+	context3s.append(model.generate(context3).cpu())
+	context4s.append(model.generate(context4).cpu())
+	context5s.append(model.generate(context5).cpu())
+	context6s.append(model.generate(context6).cpu())
+	context7s.append(model.generate(context7).cpu())
+	context8s.append(model.generate(context8).cpu())
+	context9s.append(model.generate(context9).cpu())
 
 
 model = waveglow_model.WaveGlow(
@@ -137,14 +137,14 @@ print(test_mse)
 
 for i in range(5):
 	context1s.append(model.generate(context1).cpu())
-	context2s.append(model.generate(context2).cpu()))
-	context3s.append(model.generate(context3).cpu()))
-	context4s.append(model.generate(context4).cpu()))
-	context5s.append(model.generate(context5).cpu()))
-	context6s.append(model.generate(context6).cpu()))
-	context7s.append(model.generate(context7).cpu()))
-	context8s.append(model.generate(context8).cpu()))
-	context9s.append(model.generate(context9).cpu()))
+	context2s.append(model.generate(context2).cpu())
+	context3s.append(model.generate(context3).cpu())
+	context4s.append(model.generate(context4).cpu())
+	context5s.append(model.generate(context5).cpu())
+	context6s.append(model.generate(context6).cpu())
+	context7s.append(model.generate(context7).cpu())
+	context8s.append(model.generate(context8).cpu())
+	context9s.append(model.generate(context9).cpu())
 
 
 
@@ -167,25 +167,25 @@ print(test_mse)
 
 for i in range(5):
 	context1s.append(model.generate(context1).cpu())
-	context2s.append(model.generate(context2).cpu()))
-	context3s.append(model.generate(context3).cpu()))
-	context4s.append(model.generate(context4).cpu()))
-	context5s.append(model.generate(context5).cpu()))
-	context6s.append(model.generate(context6).cpu()))
-	context7s.append(model.generate(context7).cpu()))
-	context8s.append(model.generate(context8).cpu()))
-	context9s.append(model.generate(context9).cpu()))
+	context2s.append(model.generate(context2).cpu())
+	context3s.append(model.generate(context3).cpu())
+	context4s.append(model.generate(context4).cpu())
+	context5s.append(model.generate(context5).cpu())
+	context6s.append(model.generate(context6).cpu())
+	context7s.append(model.generate(context7).cpu())
+	context8s.append(model.generate(context8).cpu())
+	context9s.append(model.generate(context9).cpu())
 
 
 
-context1s = np.savetxt('./context1.csv', np.vstack([[context1]+[forecast1]+context1s), delimiter=',')
-context2s = np.savetxt('./context2.csv', np.vstack[context2]+[forecast2]+context2s), delimiter=',')
-context3s = np.savetxt('./context3.csv', np.vstack([context3]+[forecast3]+context3s), delimiter=',')
-context4s = np.savetxt('./context4.csv', np.vstack([context4]+[forecast4]+context4s), delimiter=',')
-context5s = np.savetxt('./context5.csv', np.vstack([context5]+[forecast5]+context5s), delimiter=',')
-context6s = np.savetxt('./context6.csv', np.vstack([context6]+[forecast6]+context6s), delimiter=',')
-context7s = np.savetxt('./context7.csv', np.vstack([context7]+[forecast7]+context7s), delimiter=',')
-context8s = np.savetxt('./context8.csv', np.vstack([context8]+[forecast8]+context8s), delimiter=',')
-context9s = np.savetxt('./context9.csv', np.vstack([context9]+[forecast9]+context9s), delimiter=',')
+context1s = np.savetxt('./context1.csv', np.vstack([[context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
+context2s = np.savetxt('./context2.csv', np.vstack[context2.cpu()]+[forecast2.cpu()]+context2s), delimiter=',')
+context3s = np.savetxt('./context3.csv', np.vstack([context3.cpu()]+[forecast3.cpu()]+context3s), delimiter=',')
+context4s = np.savetxt('./context4.csv', np.vstack([context4.cpu()]+[forecast4.cpu()]+context4s), delimiter=',')
+context5s = np.savetxt('./context5.csv', np.vstack([context5.cpu()]+[forecast5.cpu()]+context5s), delimiter=',')
+context6s = np.savetxt('./context6.csv', np.vstack([context6.cpu()]+[forecast6.cpu()]+context6s), delimiter=',')
+context7s = np.savetxt('./context7.csv', np.vstack([context7.cpu()]+[forecast7.cpu()]+context7s), delimiter=',')
+context8s = np.savetxt('./context8.csv', np.vstack([context8.cpu()]+[forecast8.cpu()]+context8s), delimiter=',')
+context9s = np.savetxt('./context9.csv', np.vstack([context9.cpu()]+[forecast9.cpu()]+context9s), delimiter=',')
 
 
