@@ -14,8 +14,8 @@ context1s = []; context2s = []; context3s = []; context4s = []; context5s = []; 
 
 i = 96
 
-context = np.vstack([np.reshape(dataset.testset[i-dataset.n:i], [1, dataset.n]) for i in range(dataset.n, dataset.n*10, dataset.n)])
-forecast = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(dataset.n, dataset.n*10, dataset.n)])
+context = np.vstack([np.reshape(dataset.testset[i-dataset.n:i], [1, dataset.n]) for i in range(dataset.n, dataset.n*2, dataset.n)])
+forecast = np.vstack([np.reshape(dataset.testset[i:i+dataset.n], [1, dataset.n]) for i in range(dataset.n, dataset.n*2, dataset.n)])
 
 context = np.reshape(context, [9, dataset.n])
 context = context[:, :, None]
@@ -41,7 +41,7 @@ print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup
 print(test_loss)
 print(test_mse)
 
-for i in range(5):
+for i in range(15):
 	context1s.append(model.generate(context).cpu())
 	# print(context1s[-1])
 	# context2s.append(model.generate(context2).cpu())
@@ -74,7 +74,7 @@ print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup
 print(test_loss)
 print(test_mse)
 
-for i in range(5):
+for i in range(15):
 	context1s.append(model.generate(context).cpu())
 	# context2s.append(model.generate(context2).cpu())
 	# context3s.append(model.generate(context3).cpu())
@@ -104,7 +104,7 @@ print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup
 print(test_loss)
 print(test_mse)
 
-for i in range(5):
+for i in range(15):
 	context1s.append(model.generate(context).cpu())
 	# context2s.append(model.generate(context2).cpu())
 	# context3s.append(model.generate(context3).cpu())
@@ -134,7 +134,7 @@ print("Loss and MSE for model %s"% "waveglow_ncontextchannels-96_nflows-4_ngroup
 print(test_loss)
 print(test_mse)
 
-for i in range(5):
+for i in range(15):
 	context1s.append(model.generate(context).cpu())
 	# context2s.append(model.generate(context2).cpu())
 	# context3s.append(model.generate(context3).cpu())
@@ -147,8 +147,9 @@ for i in range(5):
 
 
 
-np.savetxt('./context.csv', np.vstack(context1s), delimiter=',')#np.vstack([context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
-np.savetxt('./forecasts', forecasts, delimiter=',')
+np.savetxt('./predictions.csv', np.vstack(context1s), delimiter=',')#np.vstack([context1.cpu()]+[forecast1.cpu()]+context1s), delimiter=',')
+np.savetxt('./contexts.csv', context, delimter=',')
+np.savetxt('./forecasts.csv', forecast, delimiter=',')
 # np.savetxt('./context2.csv', np.vstack([context2.cpu()]+[forecast2.cpu()]+context2s), delimiter=',')
 # np.savetxt('./context3.csv', np.vstack([context3.cpu()]+[forecast3.cpu()]+context3s), delimiter=',')
 # np.savetxt('./context4.csv', np.vstack([context4.cpu()]+[forecast4.cpu()]+context4s), delimiter=',')
