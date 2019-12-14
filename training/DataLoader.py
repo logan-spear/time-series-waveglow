@@ -19,11 +19,9 @@ class DataLoader:
 				print(self.m-self.n+1)
 				self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 500, replace=False)
 				self.valid_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), 100, replace=False)
-				# self.testset = np.random.choice(list(range(self.n, self.m-self.n+1)), 1000, replace=False)
 				self.testset = self.testset[:2000]
 				self.m_test = self.testset.shape[0]
 			else:
-				# self.sample_indices = np.random.choice(list(range(self.n, self.m-self.n+1)), self.m-2*self.n, replace=False)
 				self.sample_indices = np.random.choice(list(range(self.n, self.train_end-self.n+1)), self.train_end-2*self.n, replace=False)
 				self.valid_indices = list(range(self.train_end-self.n+1, self.m-self.n+1))
 		else:

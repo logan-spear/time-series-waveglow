@@ -48,8 +48,6 @@ def test_mse_loss(context, forecast, model, use_gpu, generations_per_sample=4):
 			forecast = forecast.cpu()
 		mse_loss += np.square(gen_forecast-forecast).mean(axis=1).mean()#np.square(gen_forecast-forecast).mean(axis=0)
 		
-
-	# print("Test MSE Loss: %.4f" % mse_loss)
 	return mse_loss
 
 def get_validation_loss(model, criterion, valid_context, valid_forecast):

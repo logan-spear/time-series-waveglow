@@ -9,14 +9,12 @@ import pandas as pd
 from train_utils import get_validation_loss, get_test_loss_and_mse, generate_tests
 from utils import set_gpu_train_tensor, set_gpu_tensor, load_checkpoint, save_checkpoint
 
-# n_context_channels=96, n_flows=6, n_group=24, n_early_every=3, n_early_size=8, n_layers=2, dilation_list=[1,2], n_channels=96, kernel_size=3, use_gpu=True
 def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epochs=1000, learning_rate=1e-4, batch_size=12, checkpointing=True, checkpoint_path="./checkpoints", seed=2019, params = [96, 6, 24, 3, 8, 2, [1,2], 96, 3], use_gpu=True, gen_tests=False, mname='model', validation_patience=10):
 	params.append(use_gpu)
 	torch.manual_seed(seed)
 	if use_gpu:
 		torch.cuda.manual_seed(seed)
 
-#     if not os.path.isdir(output_directory[2:]): os.mkdir(output_directory[2:])
 	if checkpointing and not os.path.isdir(checkpoint_path[2:]): os.mkdir(checkpoint_path[2:])
 	criterion = WaveGlowLoss()
 	model = WaveGlow(*params)
@@ -38,7 +36,6 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		print("Epoch: %d/%d" % (epoch+1, epochs))
 		avg_loss = []
 		while(dataset.epoch_end):
-			# model.zero_grad()
 			context, forecast = dataset.sample(batch_size)
 			forecast = set_gpu_train_tensor(forecast, use_gpu)
 			context = set_gpu_train_tensor(context, use_gpu)
@@ -58,10 +55,8 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 		validation_loss = get_validation_loss(model, criterion, valid_context, valid_forecast)
 		print("Epoch [%d/%d] had training loss: %.4f and validation_loss: %.4f" % (epoch+1, epochs, epoch_loss, validation_loss))
 		
-		# if min(curr_validation) > validation_loss:
 		if best_validation > validation_loss:
 			print("Validation loss improved to %.5f" % validation_loss)
-			# curr_validation = [validation_loss]
 			best_validation = validation_loss
 			if gen_tests: generate_tests(dataset, model, 5, 96, use_gpu, str(epoch+1), mname=mname)
 			if checkpointing:
@@ -70,7 +65,6 @@ def training_procedure(dataset=None, num_gpus=0, output_directory='./train', epo
 
 			validation_streak = 0
 		else:
-			# curr_validation.append(validation_loss)
 			validation_streak += 1
 		dataset.epoch_end = True
 
@@ -113,10 +107,7 @@ def run_training(config, epochs=100, batch_size=24, seed=2019, generate_per_epoc
 				config["dilation_list"],
 				n_channels,
 				config["kernel_size"]]
-	#     dataset = deepcopy(config["dataset"])
-	# dataset = config["dataset"]
-	#     if dataset==None:
-	#         dataset = DataLoader(rolling=rolling, small_subset=False)
+
 	output_directory = './train'
 
 	if not os.path.isdir(output_directory):
@@ -126,7 +117,6 @@ def run_training(config, epochs=100, batch_size=24, seed=2019, generate_per_epoc
 	for x in config["dilation_list"][:-1]:
 		dilation_str += '%d-'%x
 	dilation_str += '%d'%config["dilation_list"][-1]
-	# dilation_str = "%d-"%x for x in args.dilation_list[:-1]] + 
 	mname = 'waveglow_ncontextchannels-%d_nflows-%d_ngroup-%d-nearlyevery-%d-nearlysize-%d-nlayers-%d_dilations-%s_nchannels_%d-kernelsize-%d-lr-%.5f_seed-%d' % (params[0], params[1], params[2], params[3], params[4], params[5], dilation_str, params[7], params[8], config["learning_rate"], seed)
 	if not os.path.isdir(output_directory+"/"+mname):
 		print("Making a new directory at " + output_directory+"/"+mname)
@@ -154,8 +144,3 @@ def run_training(config, epochs=100, batch_size=24, seed=2019, generate_per_epoc
 		generate_tests(dataset, final_model, use_gpu=use_gpu, mname=mname)
 
 		print("Done with generate_tests function")
-
-	
-
-		
-		
